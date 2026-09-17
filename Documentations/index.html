@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Xcode MCP Tools</title>
+<style>
+:root {
+  --bg: #ffffff;
+  --border: #d8dce2;
+  --text: #1c1e21;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #16181c;
+    --border: #333840;
+    --text: #e6e8eb;
+  }
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", sans-serif;
+}
+header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--border);
+}
+h1 { margin: 0; font-size: 15px; font-weight: 600; }
+#version {
+  font-size: 14px;
+  padding: 5px 8px;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+iframe {
+  display: block;
+  width: 100%;
+  height: calc(100% - 45px);
+  border: 0;
+}
+</style>
+</head>
+<body>
+<header>
+<h1>Xcode MCP Tools</h1>
+<select id="version" aria-label="Xcode version">
+<option value="xcode-27.0-mcp-tools.html" selected>Xcode 27.0</option>
+</select>
+</header>
+<iframe id="doc" src="xcode-27.0-mcp-tools.html" title="Xcode MCP Tools"></iframe>
+<script>
+const select = document.getElementById('version');
+const frame = document.getElementById('doc');
+select.addEventListener('change', () => { frame.src = select.value; });
+</script>
+</body>
+</html>

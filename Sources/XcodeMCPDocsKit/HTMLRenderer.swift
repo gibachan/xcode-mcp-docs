@@ -37,10 +37,6 @@ public struct HTMLRenderer {
 
 private extension HTMLRenderer {
     func renderHeader(_ catalog: ToolCatalog, groups: [(category: ToolCategory, tools: [Tool])]) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd HH:mm"
-        formatter.timeZone = .current
-
         let chips = ([("All", "")] + groups.map { ($0.category.name, $0.category.name) })
             .enumerated()
             .map { index, chip in
@@ -57,8 +53,6 @@ private extension HTMLRenderer {
         <div><dt>Server</dt><dd>\(escape(catalog.serverInfo.name)) \(escape(catalog.serverInfo.version))</dd></div>
         <div><dt>MCP protocol</dt><dd>\(escape(catalog.protocolVersion))</dd></div>
         <div><dt>Tools</dt><dd><span id="count">\(catalog.tools.count)</span> / \(catalog.tools.count)</dd></div>
-        <div><dt>Fetched</dt><dd>\(escape(formatter.string(from: catalog.fetchedAt)))</dd></div>
-        <div class="wide"><dt>mcpbridge</dt><dd><code>\(escape(catalog.bridgePath))</code></dd></div>
         </dl>
         <input id="search" type="search" placeholder="Filter by tool name or description" autocomplete="off">
         <div class="chips">
@@ -211,7 +205,6 @@ private extension HTMLRenderer {
     .meta div { display: flex; gap: 6px; }
     .meta dt { color: var(--muted); margin: 0; }
     .meta dd { margin: 0; }
-    .meta .wide code { font-size: 12px; color: var(--muted); }
     #search {
       width: 100%;
       padding: 10px 12px;

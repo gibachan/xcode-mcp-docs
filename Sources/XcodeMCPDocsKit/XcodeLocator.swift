@@ -54,11 +54,7 @@ public enum XcodeLocator {
 
     /// The `CFBundleShortVersionString` of an `Xcode.app` bundle, e.g. `"26.6"`.
     public static func xcodeVersion(forBundle bundleURL: URL) -> String? {
-        let infoPlistURL = bundleURL.appendingPathComponent("Contents/Info.plist")
-        guard let data = try? Data(contentsOf: infoPlistURL),
-              let plist = try? PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any]
-        else { return nil }
-        return plist["CFBundleShortVersionString"] as? String
+        infoPlist(forBundle: bundleURL)?["CFBundleShortVersionString"] as? String
     }
 
     /// The Xcode version of the bundle that contains the given `mcpbridge`, if it can be resolved.
@@ -70,17 +66,34 @@ public enum XcodeLocator {
     /// The `DTXcodeBuild` of an `Xcode.app` bundle, e.g. `"27A266"` — the build identifier shown
     /// in parentheses in Xcode's "About Xcode" window.
     public static func xcodeBuild(forBundle bundleURL: URL) -> String? {
-        let infoPlistURL = bundleURL.appendingPathComponent("Contents/Info.plist")
-        guard let data = try? Data(contentsOf: infoPlistURL),
-              let plist = try? PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any]
-        else { return nil }
-        return plist["DTXcodeBuild"] as? String
+        infoPlist(forBundle: bundleURL)?["DTXcodeBuild"] as? String
     }
 
     /// The Xcode build of the bundle that contains the given `mcpbridge`, if it can be resolved.
     public static func xcodeBuild(forBridge bridgeURL: URL) -> String? {
         guard let bundleURL = bundle(forBridge: bridgeURL) else { return nil }
         return xcodeBuild(forBundle: bundleURL)
+    }
+
+    /// Whether an `Xcode.app` bundle is a beta build. Beta Xcodes use a distinct icon named
+    /// e.g. `XcodeBeta`, so `CFBundleIconName`/`CFBundleIconFile` containing "Beta" is Apple's own
+    /// signal — there is no dedicated "is beta" key in Info.plist.
+    public static func isBeta(forBundle bundleURL: URL) -> Bool {
+        guard let plist = infoPlist(forBundle: bundleURL) else { return false }
+        let iconName = (plist["CFBundleIconName"] as? String) ?? (plist["CFBundleIconFile"] as? String) ?? ""
+        return iconName.localizedCaseInsensitiveContains("beta")
+    }
+
+    /// Whether the bundle that contains the given `mcpbridge` is a beta build.
+    public static func isBeta(forBridge bridgeURL: URL) -> Bool {
+        guard let bundleURL = bundle(forBridge: bridgeURL) else { return false }
+        return isBeta(forBundle: bundleURL)
+    }
+
+    private static func infoPlist(forBundle bundleURL: URL) -> [String: Any]? {
+        let infoPlistURL = bundleURL.appendingPathComponent("Contents/Info.plist")
+        guard let data = try? Data(contentsOf: infoPlistURL) else { return nil }
+        return try? PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any]
     }
 
     /// Xcodes installed under `/Applications`, used to guide the user in error messages.

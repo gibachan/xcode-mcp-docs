@@ -12,8 +12,9 @@ public struct IndexRenderer {
 
         let options = documents.enumerated()
             .map { index, document in
-                """
-                <option value="\(escape(document.fileName))"\(index == 0 ? " selected" : "")>Xcode \(escape(document.version))</option>
+                let label = document.isBeta ? "Xcode \(document.version) (Beta)" : "Xcode \(document.version)"
+                return """
+                <option value="\(escape(document.fileName))"\(index == 0 ? " selected" : "")>\(escape(label))</option>
                 """
             }
             .joined(separator: "\n")
@@ -24,19 +25,22 @@ public struct IndexRenderer {
         <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Xcode MCP Tools</title>
+        <title>Xcode MCP Docs</title>
         <style>
         \(Self.stylesheet)
         </style>
         </head>
         <body>
         <header>
-        <h1>Xcode MCP Tools</h1>
+        <div class="title-group">
+        <h1>Xcode MCP Docs</h1>
+        <p class="subtitle">docs for the tools xcode's built-in mcp server exposes, by version</p>
+        </div>
         <select id="version" aria-label="Xcode version">
         \(options)
         </select>
         </header>
-        <iframe id="doc" src="\(escape(first.fileName))" title="Xcode MCP Tools"></iframe>
+        <iframe id="doc" src="\(escape(first.fileName))" title="Xcode MCP Docs"></iframe>
         <script>
         \(Self.script)
         </script>
@@ -62,7 +66,7 @@ private extension IndexRenderer {
     <html lang="en">
     <head>
     <meta charset="utf-8">
-    <title>Xcode MCP Tools</title>
+    <title>Xcode MCP Docs</title>
     </head>
     <body>
     <p>No documentation has been generated yet. Run <code>xcode-mcp-docs generate</code>.</p>
@@ -79,12 +83,14 @@ private extension IndexRenderer {
       --bg: #ffffff;
       --border: #d8dce2;
       --text: #1c1e21;
+      --muted: #6e7480;
     }
     @media (prefers-color-scheme: dark) {
       :root {
         --bg: #16181c;
         --border: #333840;
         --text: #e6e8eb;
+        --muted: #9aa1ac;
       }
     }
     * { box-sizing: border-box; }
@@ -102,7 +108,9 @@ private extension IndexRenderer {
       padding: 10px 20px;
       border-bottom: 1px solid var(--border);
     }
+    .title-group { display: flex; flex-direction: column; gap: 2px; }
     h1 { margin: 0; font-size: 15px; font-weight: 600; }
+    .subtitle { margin: 0; font-size: 12px; color: var(--muted); }
     #version {
       font-size: 14px;
       padding: 5px 8px;

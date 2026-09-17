@@ -58,6 +58,8 @@ public struct ToolCatalog: Codable, Equatable {
     public let xcodeVersion: String?
     /// `DTXcodeBuild` of the Xcode that owns `bridgePath`, e.g. `"27A266"`.
     public let xcodeBuild: String?
+    /// Whether the Xcode that owns `bridgePath` is a beta build.
+    public let xcodeIsBeta: Bool
 
     public init(
         bridgePath: String,
@@ -66,7 +68,8 @@ public struct ToolCatalog: Codable, Equatable {
         tools: [Tool],
         fetchedAt: Date = Date(),
         xcodeVersion: String? = nil,
-        xcodeBuild: String? = nil
+        xcodeBuild: String? = nil,
+        xcodeIsBeta: Bool = false
     ) {
         self.bridgePath = bridgePath
         self.protocolVersion = protocolVersion
@@ -74,6 +77,7 @@ public struct ToolCatalog: Codable, Equatable {
         self.tools = tools
         self.fetchedAt = fetchedAt
         self.xcodeVersion = xcodeVersion
+        self.xcodeIsBeta = xcodeIsBeta
         self.xcodeBuild = xcodeBuild
     }
 }

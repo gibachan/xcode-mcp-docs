@@ -46,7 +46,8 @@ struct BridgeOptions: ParsableArguments {
                 tools: catalog.tools,
                 fetchedAt: catalog.fetchedAt,
                 xcodeVersion: XcodeLocator.xcodeVersion(forBridge: bridgeURL),
-                xcodeBuild: XcodeLocator.xcodeBuild(forBridge: bridgeURL)
+                xcodeBuild: XcodeLocator.xcodeBuild(forBridge: bridgeURL),
+                xcodeIsBeta: XcodeLocator.isBeta(forBridge: bridgeURL)
             )
         } catch let error as XcodeMCPDocsError {
             throw refine(error, bridgeURL: bridgeURL)

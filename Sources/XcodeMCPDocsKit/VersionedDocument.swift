@@ -6,9 +6,12 @@ import Foundation
 /// Anything else (including `index.html` itself, or Markdown output) does not match.
 public struct VersionedDocument: Equatable {
     public let version: String
+    public let isBeta: Bool
     public let fileName: String
 
-    private static let pattern = try! NSRegularExpression(pattern: "^xcode-(.+)-mcp-tools\\.html$")
+    /// Group 1 is the dotted version number (kept numeric so sorting isn't thrown off by a
+    /// trailing `-beta`); group 2, if present, marks a beta build.
+    private static let pattern = try! NSRegularExpression(pattern: "^xcode-([0-9.]+)(-beta)?-mcp-tools\\.html$")
 
     public init?(fileName: String) {
         let range = NSRange(fileName.startIndex..., in: fileName)
@@ -16,6 +19,7 @@ public struct VersionedDocument: Equatable {
               let versionRange = Range(match.range(at: 1), in: fileName)
         else { return nil }
         self.version = String(fileName[versionRange])
+        self.isBeta = match.range(at: 2).location != NSNotFound
         self.fileName = fileName
     }
 

@@ -48,7 +48,6 @@ private extension HTMLRenderer {
 
         return """
         <header>
-        <h1>Xcode MCP Tools</h1>
         <dl class="meta">
         \(renderXcodeMeta(catalog))
         <div><dt>Server</dt><dd>\(escape(catalog.serverInfo.name)) \(escape(catalog.serverInfo.version))</dd></div>
@@ -66,8 +65,10 @@ private extension HTMLRenderer {
     /// Renders the Xcode version/build rows, or nothing when neither could be resolved.
     func renderXcodeMeta(_ catalog: ToolCatalog) -> String {
         guard catalog.xcodeVersion != nil || catalog.xcodeBuild != nil else { return "" }
+        let version = catalog.xcodeVersion ?? "Unknown"
+        let versionLabel = catalog.xcodeIsBeta ? "\(version) (Beta)" : version
         return """
-        <div><dt>Xcode version</dt><dd>\(escape(catalog.xcodeVersion ?? "Unknown"))</dd></div>
+        <div><dt>Xcode version</dt><dd>\(escape(versionLabel))</dd></div>
         <div><dt>Build</dt><dd>\(escape(catalog.xcodeBuild ?? "Unknown"))</dd></div>
         """
     }
@@ -204,7 +205,6 @@ private extension HTMLRenderer {
       border-bottom: 1px solid var(--border);
       padding: 20px 24px 12px;
     }
-    h1 { margin: 0 0 12px; font-size: 22px; }
     .meta {
       display: flex;
       flex-wrap: wrap;

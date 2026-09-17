@@ -21,6 +21,25 @@ final class VersionedDocumentTests: XCTestCase {
         // A plain string sort would put "9.0" ahead of "26.6" and "27.2"; this must not.
         XCTAssertEqual(sorted.map(\.version), ["27.2", "26.6", "9.0"])
     }
+
+    func testParsesBetaOutOfFileName() {
+        let document = VersionedDocument(fileName: "xcode-27.2-beta-mcp-tools.html")
+        XCTAssertEqual(document?.version, "27.2")
+        XCTAssertEqual(document?.isBeta, true)
+    }
+
+    func testNonBetaFileNameIsNotBeta() {
+        let document = VersionedDocument(fileName: "xcode-27.2-mcp-tools.html")
+        XCTAssertEqual(document?.isBeta, false)
+    }
+
+    /// The trailing `-beta` must not corrupt the numeric version used for sorting.
+    func testSortsBetaVersionsNumerically() {
+        let documents = ["xcode-27.0-mcp-tools.html", "xcode-27.2-beta-mcp-tools.html"]
+            .compactMap(VersionedDocument.init(fileName:))
+        let sorted = VersionedDocument.sortedByVersionDescending(documents)
+        XCTAssertEqual(sorted.map(\.version), ["27.2", "27.0"])
+    }
 }
 
 final class IndexRendererTests: XCTestCase {
@@ -39,5 +58,11 @@ final class IndexRendererTests: XCTestCase {
     func testExplainsThatNothingHasBeenGeneratedYetWhenEmpty() {
         let html = IndexRenderer().render([])
         XCTAssertTrue(html.contains("No documentation has been generated yet"))
+    }
+
+    func testMarksBetaVersionInOptionLabel() {
+        let documents = [VersionedDocument(fileName: "xcode-27.2-beta-mcp-tools.html")!]
+        let html = IndexRenderer().render(documents)
+        XCTAssertTrue(html.contains(#">Xcode 27.2 (Beta)</option>"#))
     }
 }

@@ -16,7 +16,8 @@ final class RenderingTests: XCTestCase {
     private func makeCatalog(
         _ tools: [Tool],
         xcodeVersion: String? = nil,
-        xcodeBuild: String? = nil
+        xcodeBuild: String? = nil,
+        xcodeIsBeta: Bool = false
     ) -> ToolCatalog {
         ToolCatalog(
             bridgePath: "/Applications/Xcode-27.app/Contents/Developer/usr/bin/mcpbridge",
@@ -25,7 +26,8 @@ final class RenderingTests: XCTestCase {
             tools: tools,
             fetchedAt: Date(timeIntervalSince1970: 0),
             xcodeVersion: xcodeVersion,
-            xcodeBuild: xcodeBuild
+            xcodeBuild: xcodeBuild,
+            xcodeIsBeta: xcodeIsBeta
         )
     }
 
@@ -113,6 +115,13 @@ final class RenderingTests: XCTestCase {
         )
         XCTAssertTrue(html.contains("<dt>Xcode version</dt><dd>27.0</dd>"))
         XCTAssertTrue(html.contains("<dt>Build</dt><dd>27A266</dd>"))
+    }
+
+    func testHTMLMarksBetaXcodeVersion() throws {
+        let html = HTMLRenderer().render(
+            makeCatalog(try fixtureTools(), xcodeVersion: "27.2", xcodeBuild: "27B5019i", xcodeIsBeta: true)
+        )
+        XCTAssertTrue(html.contains("<dt>Xcode version</dt><dd>27.2 (Beta)</dd>"))
     }
 
     func testHTMLOmitsXcodeMetaWhenUnknown() throws {

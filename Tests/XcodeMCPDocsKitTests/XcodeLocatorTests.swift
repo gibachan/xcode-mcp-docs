@@ -23,4 +23,38 @@ final class XcodeLocatorTests: XCTestCase {
             }
         }
     }
+
+    // MARK: - xcodeVersion
+
+    func testReadsVersionFromBundleInfoPlist() throws {
+        let bundleURL = try makeFakeBundle(named: "Xcode-26.6.app", shortVersion: "26.6")
+        defer { try? FileManager.default.removeItem(at: bundleURL) }
+        XCTAssertEqual(XcodeLocator.xcodeVersion(forBundle: bundleURL), "26.6")
+    }
+
+    func testReadsVersionFromBridgePathByWalkingUpToTheBundle() throws {
+        let bundleURL = try makeFakeBundle(named: "Xcode-27.app", shortVersion: "27.0")
+        defer { try? FileManager.default.removeItem(at: bundleURL) }
+        let bridgeURL = bundleURL.appendingPathComponent(XcodeLocator.bridgeRelativePath)
+        XCTAssertEqual(XcodeLocator.xcodeVersion(forBridge: bridgeURL), "27.0")
+    }
+
+    func testVersionIsNilWhenInfoPlistIsMissing() {
+        let bundleURL = URL(fileURLWithPath: "/Applications/DoesNotExist.app")
+        XCTAssertNil(XcodeLocator.xcodeVersion(forBundle: bundleURL))
+    }
+
+    /// Builds a throwaway `Foo.app/Contents/Info.plist` under a temp directory so version
+    /// lookup can be tested without touching a real Xcode installation.
+    private func makeFakeBundle(named name: String, shortVersion: String) throws -> URL {
+        let bundleURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString)
+            .appendingPathComponent(name)
+        let contentsURL = bundleURL.appendingPathComponent("Contents")
+        try FileManager.default.createDirectory(at: contentsURL, withIntermediateDirectories: true)
+        let plist: [String: Any] = ["CFBundleShortVersionString": shortVersion]
+        let data = try PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0)
+        try data.write(to: contentsURL.appendingPathComponent("Info.plist"))
+        return bundleURL
+    }
 }

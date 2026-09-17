@@ -52,6 +52,21 @@ public enum XcodeLocator {
         throw XcodeMCPDocsError.bridgeNotFound(path: "xcrun -f mcpbridge")
     }
 
+    /// The `CFBundleShortVersionString` of an `Xcode.app` bundle, e.g. `"26.6"`.
+    public static func xcodeVersion(forBundle bundleURL: URL) -> String? {
+        let infoPlistURL = bundleURL.appendingPathComponent("Contents/Info.plist")
+        guard let data = try? Data(contentsOf: infoPlistURL),
+              let plist = try? PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any]
+        else { return nil }
+        return plist["CFBundleShortVersionString"] as? String
+    }
+
+    /// The Xcode version of the bundle that contains the given `mcpbridge`, if it can be resolved.
+    public static func xcodeVersion(forBridge bridgeURL: URL) -> String? {
+        guard let bundleURL = bundle(forBridge: bridgeURL) else { return nil }
+        return xcodeVersion(forBundle: bundleURL)
+    }
+
     /// Xcodes installed under `/Applications`, used to guide the user in error messages.
     public static func installedXcodes() -> [URL] {
         let applications = URL(fileURLWithPath: "/Applications")

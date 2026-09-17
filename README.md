@@ -22,6 +22,8 @@ xcode-mcp-docs list --names-only
 xcode-mcp-docs show RenderPreview
 
 # Write out HTML and open it in a browser
+# (defaults to Documentations/xcode-<version>-mcp-tools.html, and refreshes
+# Documentations/index.html so it can switch between every version generated so far)
 xcode-mcp-docs generate --open
 
 # Target a specific version
@@ -51,6 +53,22 @@ Self-contained in a single file. It loads no external CSS, JS, or fonts, so it o
 - Input and output schemas shown as tables, nesting preserved (required entries first)
 - Raw JSON per tool (the only collapsed part) plus an anchor link
 - Automatic light / dark switching
+
+### Per-version output and the switcher menu
+
+When `-o` is left unset, `generate` writes to `Documentations/xcode-<version>-mcp-tools.<ext>`,
+reading `<version>` (e.g. `26.6`) from the `CFBundleShortVersionString` of the Xcode bundle that
+owns the `mcpbridge` being queried. If the version can't be determined (say, `--xcode` pointed
+straight at a bare `mcpbridge` binary), it falls back to `Documentations/xcode-mcp-tools.<ext>`.
+
+For HTML output written to that default location, `generate` also rewrites
+`Documentations/index.html` — a small menu (`<select>` + `<iframe>`) that switches between every
+versioned HTML file already sitting in `Documentations/`, newest version first. Run `generate`
+once per Xcode version to build up the switcher; each run only adds/replaces its own file and
+does not touch the others.
+
+Passing `-o` explicitly opts out of both: the file is written exactly where asked, unversioned,
+and `index.html` is left alone.
 
 ### Options
 

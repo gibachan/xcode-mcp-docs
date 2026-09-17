@@ -1,36 +1,43 @@
 # xcode-mcp-docs
 
 A CLI that fetches the list of tools exposed by the MCP (Model Context Protocol) server built
-into Xcode.
+into Xcode, and generates browsable documentation from it — one page per Xcode version.
 
 Apple publishes no document enumerating these tools; the definitions are embedded in Xcode's own
 binary (`IDEIntelligenceChat.framework`). The only accurate way to obtain them is to ask at
 runtime, by sending the JSON-RPC `tools/list` request to `mcpbridge`.
 
+## Published docs
+
+Generated documentation for each Xcode version's MCP server tools is published at
+[gibachan.github.io/xcode-mcp-docs](https://gibachan.github.io/xcode-mcp-docs/) — a switcher menu
+over every version generated so far. It's rebuilt automatically from `Documentations/` on every
+push to `main` (see `.github/workflows/pages.yml`).
+
 ## Usage
 
 ```sh
-swift build -c release
+make build
 
 # Tools of the currently selected Xcode
-xcode-mcp-docs list
+.build/release/xcode-mcp-docs list
 
 # Names only
-xcode-mcp-docs list --names-only
+.build/release/xcode-mcp-docs list --names-only
 
 # Details of a single tool (tables of parameters and return values)
-xcode-mcp-docs show RenderPreview
+.build/release/xcode-mcp-docs show RenderPreview
 
 # Write out HTML and open it in a browser
 # (defaults to Documentations/xcode-<version>-mcp-tools.html, and refreshes
 # Documentations/index.html so it can switch between every version generated so far)
-xcode-mcp-docs generate --open
+.build/release/xcode-mcp-docs generate --open
 
 # Target a specific version
-xcode-mcp-docs list --xcode /Applications/Xcode-27.app
+.build/release/xcode-mcp-docs list --xcode /Applications/Xcode-27.app
 
 # Everything as JSON, including inputSchema / outputSchema
-xcode-mcp-docs json -o tools.json
+.build/release/xcode-mcp-docs json -o tools.json
 ```
 
 ### Subcommands
@@ -46,12 +53,13 @@ xcode-mcp-docs json -o tools.json
 
 Self-contained in a single file. It loads no external CSS, JS, or fonts, so it opens offline.
 
+- Xcode version and build shown in the header, alongside the MCP server name/version and tool count
 - Every tool is expanded from the start; collapsing happens per category (all open by default)
 - Incremental search over tool names and descriptions. Matching categories open automatically while
   searching, and the previous open/closed state is restored once the query is cleared
 - Filtering by category (classified mechanically from the name; unknown tools land in "other")
 - Input and output schemas shown as tables, nesting preserved (required entries first)
-- Raw JSON per tool (the only collapsed part) plus an anchor link
+- Raw JSON per tool (the only collapsed part) plus an anchor link (`#tool-<Name>`)
 - Automatic light / dark switching
 
 ### Per-version output and the switcher menu
@@ -65,7 +73,8 @@ For HTML output written to that default location, `generate` also rewrites
 `Documentations/index.html` — a small menu (`<select>` + `<iframe>`) that switches between every
 versioned HTML file already sitting in `Documentations/`, newest version first. Run `generate`
 once per Xcode version to build up the switcher; each run only adds/replaces its own file and
-does not touch the others.
+does not touch the others. Linking to `index.html#<ToolName>` (e.g. `index.html#RenderPreview`)
+jumps straight to that tool in whichever version is currently selected.
 
 Passing `-o` explicitly opts out of both: the file is written exactly where asked, unversioned,
 and `index.html` is left alone.
@@ -95,28 +104,3 @@ response never comes back and the call times out — it stays silent instead of 
 The headless Xcode Service in Xcode 27, by contrast, responds without approval, so **letting
 mcpbridge choose the target is the reliable option**. To pin a version it is enough to select the
 corresponding mcpbridge with `--xcode`.
-
-## Debugging
-
-Setting `XCODE_MCP_DOCS_DEBUG` prints the messages sent and received, along with the progress of
-each wait, to standard error.
-
-```sh
-XCODE_MCP_DOCS_DEBUG=1 xcode-mcp-docs list
-```
-
-## Implementation notes
-
-- Waiting for responses with a fixed `sleep` drops them on some versions, so `ResponseCollector`
-  releases the wait as soon as it sees a matching JSON-RPC `id`
-- Requests are sent in the order `initialize` → `notifications/initialized` → `tools/list`, and the
-  error distinguishes which of the two waits timed out
-- The connection target (`MCP_XCODE_PID`) is not set by default, because naming one goes silent
-  while it waits for approval
-
-## Roadmap
-
-- **Phase 1 (done)** — fetching `tools/list`, the `list` / `json` subcommands
-- **Phase 2 (done)** — HTML / Markdown output, `show <tool>`
-- **Phase 3** — `xcodes` (installed Xcodes and their tool counts), `diff` (differences between
-  versions), Skill integration

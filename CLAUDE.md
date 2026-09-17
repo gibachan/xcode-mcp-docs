@@ -19,10 +19,12 @@ swift test                # run the full test suite (Kit target only; CLI target
 swift test --filter XcodeLocatorTests            # a single test class
 swift test --filter XcodeLocatorTests/testReadsVersionFromBundleInfoPlist  # a single test method
 
-make build   # swift build -c release
-make test    # swift test
-make install # builds release, installs to $(PREFIX)/bin (default ~/.local/bin)
-make clean   # swift package clean
+make build         # swift build -c release
+make test          # swift test
+make install       # builds release, installs to $(PREFIX)/bin (default ~/.local/bin)
+make clean         # swift package clean
+make generate-all  # runs `generate` against every /Applications/Xcode*.app, skipping any
+                   # that don't support MCP or aren't Xcode at all (e.g. Xcodes.app)
 ```
 
 Exercising the CLI itself against a real Xcode requires an actual Xcode installation; there is no

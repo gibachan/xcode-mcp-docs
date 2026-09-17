@@ -122,6 +122,20 @@ private extension IndexRenderer {
     static let script = """
     const select = document.getElementById('version');
     const frame = document.getElementById('doc');
-    select.addEventListener('change', () => { frame.src = select.value; });
+
+    function toolAnchor() {
+      const hash = window.location.hash.slice(1);
+      if (!hash) return null;
+      return hash.startsWith('tool-') ? hash : `tool-${hash}`;
+    }
+
+    function loadFrame() {
+      const anchor = toolAnchor();
+      frame.src = anchor ? `${select.value}#${anchor}` : select.value;
+    }
+
+    select.addEventListener('change', loadFrame);
+    window.addEventListener('hashchange', loadFrame);
+    loadFrame();
     """
 }

@@ -3,18 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Xcode MCP Tools</title>
+<title>Xcode MCP Docs</title>
 <style>
 :root {
   --bg: #ffffff;
   --border: #d8dce2;
   --text: #1c1e21;
+  --muted: #6e7480;
 }
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #16181c;
     --border: #333840;
     --text: #e6e8eb;
+    --muted: #9aa1ac;
   }
 }
 * { box-sizing: border-box; }
@@ -32,7 +34,9 @@ header {
   padding: 10px 20px;
   border-bottom: 1px solid var(--border);
 }
+.title-group { display: flex; flex-direction: column; gap: 2px; }
 h1 { margin: 0; font-size: 15px; font-weight: 600; }
+.subtitle { margin: 0; font-size: 12px; color: var(--muted); }
 #version {
   font-size: 14px;
   padding: 5px 8px;
@@ -51,14 +55,17 @@ iframe {
 </head>
 <body>
 <header>
-<h1>Xcode MCP Tools</h1>
+<div class="title-group">
+<h1>Xcode MCP Docs</h1>
+<p class="subtitle">docs for the tools xcode's built-in mcp server exposes, by version</p>
+</div>
 <select id="version" aria-label="Xcode version">
-<option value="xcode-27.2-mcp-tools.html" selected>Xcode 27.2</option>
+<option value="xcode-27.2-beta-mcp-tools.html" selected>Xcode 27.2 (Beta)</option>
 <option value="xcode-27.0-mcp-tools.html">Xcode 27.0</option>
 <option value="xcode-26.6-mcp-tools.html">Xcode 26.6</option>
 </select>
 </header>
-<iframe id="doc" src="xcode-27.2-mcp-tools.html" title="Xcode MCP Tools"></iframe>
+<iframe id="doc" src="xcode-27.2-beta-mcp-tools.html" title="Xcode MCP Docs"></iframe>
 <script>
 const select = document.getElementById('version');
 const frame = document.getElementById('doc');

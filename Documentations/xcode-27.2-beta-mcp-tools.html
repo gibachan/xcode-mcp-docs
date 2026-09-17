@@ -172,9 +172,9 @@ td.desc-cell { width: 55%; white-space: pre-wrap; }
 <body>
 <header>
 <dl class="meta">
-<div><dt>Xcode version</dt><dd>27.0</dd></div>
-<div><dt>Build</dt><dd>27A266</dd></div>
-<div><dt>Server</dt><dd>xcode-tools 25317</dd></div>
+<div><dt>Xcode version</dt><dd>27.2 (Beta)</dd></div>
+<div><dt>Build</dt><dd>27B5019i</dd></div>
+<div><dt>Server</dt><dd>xcode-tools 25434.2</dd></div>
 <div><dt>MCP protocol</dt><dd>2024-11-05</dd></div>
 <div><dt>Tools</dt><dd><span id="count">53</span> / 53</dd></div>
 </dl>
@@ -6936,6 +6936,36 @@ about the running state.</div>
 <td class="desc-cell">The path to the file within the Xcode project organization (e.g., 'ProjectName/Sources/MyFile.swift')</td>
 </tr>
 <tr>
+<td class="name" style="padding-left: 12px"><code>preferredRenderDestination</code></td>
+<td class="type"><code>object</code></td>
+<td class="required"></td>
+<td class="desc-cell">The render destination (device or simulator) to render the preview on, described by any combination of its `identifier`, `platformName`, `deviceModelName`, and `systemVersion`. Use values that were returned in one of the `availableRenderDestinations` entries by a previous invocation of this tool for the same active scheme. Any field left unset is not constrained, and the first available destination matching all specified fields is used. If omitted, the destination is chosen automatically (typically derived from the workspace’s currently-selected run destination). If no available destination matches the specified fields, the preview is rendered on the automatically-chosen destination instead and a message is added to the `errors` field.</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>deviceModelName</code></td>
+<td class="type"><code>string</code></td>
+<td class="required"></td>
+<td class="desc-cell">Display name of the device model of the render destination (e.g. “iPhone 15 Pro”, “iPad Pro (11-inch) (2nd generation)”, “My Mac”).</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>identifier</code></td>
+<td class="type"><code>string</code></td>
+<td class="required"></td>
+<td class="desc-cell">Opaque, stable identifier for this render destination. When specified, only a destination with this exact identifier matches.</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>platformName</code></td>
+<td class="type"><code>string</code></td>
+<td class="required"></td>
+<td class="desc-cell">Display name of the platform of the render destination (e.g. “iOS Simulator”, “macOS”).</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>systemVersion</code></td>
+<td class="type"><code>string</code></td>
+<td class="required"></td>
+<td class="desc-cell">Operating System version of the render destination, in major.minor[.patch] form (e.g. “17.2”).</td>
+</tr>
+<tr>
 <td class="name" style="padding-left: 12px"><code>previewCanvasControlOverrides</code></td>
 <td class="type"><code>object</code></td>
 <td class="required"></td>
@@ -6996,6 +7026,36 @@ about the running state.</div>
 <thead><tr><th>Name</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
 <tbody>
 <tr>
+<td class="name" style="padding-left: 12px"><code>availableRenderDestinations</code></td>
+<td class="type"><code>array&lt;object&gt;</code></td>
+<td class="required"></td>
+<td class="desc-cell">The render destinations that are available for rendering this preview, given the currently active scheme. The `identifier` of any of these entries can be passed in the `identifier` field of the `preferredRenderDestination` input field of a subsequent invocation to render the preview on that specific destination. Omitted if the available destinations could not be determined.</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>identifier</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">Required</td>
+<td class="desc-cell">Opaque, stable identifier for this render destination. Pass this exact value back in the `identifier` field of the `preferredRenderDestination` input field of a subsequent invocation to render the preview on this destination.</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>deviceModelName</code></td>
+<td class="type"><code>string</code></td>
+<td class="required"></td>
+<td class="desc-cell">Display name of the device model of the render destination (e.g. “iPhone 15 Pro”, “iPad Pro (11-inch) (2nd generation)”, “My Mac”). Omitted if not known.</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>platformName</code></td>
+<td class="type"><code>string</code></td>
+<td class="required"></td>
+<td class="desc-cell">Display name of the platform of the render destination (e.g. “iOS Simulator”, “macOS”). Omitted if not known.</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>systemVersion</code></td>
+<td class="type"><code>string</code></td>
+<td class="required"></td>
+<td class="desc-cell">Operating System version of the render destination, in major.minor[.patch] form (e.g. “17.2”). Omitted if not known.</td>
+</tr>
+<tr>
 <td class="name" style="padding-left: 12px"><code>displayName</code></td>
 <td class="type"><code>string</code></td>
 <td class="required"></td>
@@ -7024,6 +7084,12 @@ about the running state.</div>
 <td class="type"><code>object</code></td>
 <td class="required"></td>
 <td class="desc-cell">Describes the render destination that the preview was rendered on. May differ from the workspace's currently-selected run destination if the pipeline picked a different one for this preview. Omitted if the render destination could not be determined.</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>identifier</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">Required</td>
+<td class="desc-cell">Opaque, stable identifier for this render destination. Pass this exact value back in the `identifier` field of the `preferredRenderDestination` input field of a subsequent invocation to render the preview on this destination.</td>
 </tr>
 <tr>
 <td class="name" style="padding-left: 30px"><code>deviceModelName</code></td>
@@ -7093,6 +7159,31 @@ about the running state.</div>
   &quot;description&quot; : &quot;Builds and renders a Preview and waits until a snapshot of the resulting UI is available.&quot;,
   &quot;inputSchema&quot; : {
     &quot;properties&quot; : {
+      &quot;preferredRenderDestination&quot; : {
+        &quot;description&quot; : &quot;The render destination (device or simulator) to render the preview on, described by any combination of its `identifier`, `platformName`, `deviceModelName`, and `systemVersion`. Use values that were returned in one of the `availableRenderDestinations` entries by a previous invocation of this tool for the same active scheme. Any field left unset is not constrained, and the first available destination matching all specified fields is used. If omitted, the destination is chosen automatically (typically derived from the workspace’s currently-selected run destination). If no available destination matches the specified fields, the preview is rendered on the automatically-chosen destination instead and a message is added to the `errors` field.&quot;,
+        &quot;properties&quot; : {
+          &quot;deviceModelName&quot; : {
+            &quot;description&quot; : &quot;Display name of the device model of the render destination (e.g. “iPhone 15 Pro”, “iPad Pro (11-inch) (2nd generation)”, “My Mac”).&quot;,
+            &quot;type&quot; : &quot;string&quot;
+          },
+          &quot;identifier&quot; : {
+            &quot;description&quot; : &quot;Opaque, stable identifier for this render destination. When specified, only a destination with this exact identifier matches.&quot;,
+            &quot;type&quot; : &quot;string&quot;
+          },
+          &quot;platformName&quot; : {
+            &quot;description&quot; : &quot;Display name of the platform of the render destination (e.g. “iOS Simulator”, “macOS”).&quot;,
+            &quot;type&quot; : &quot;string&quot;
+          },
+          &quot;systemVersion&quot; : {
+            &quot;description&quot; : &quot;Operating System version of the render destination, in major.minor[.patch] form (e.g. “17.2”).&quot;,
+            &quot;type&quot; : &quot;string&quot;
+          }
+        },
+        &quot;required&quot; : [
+
+        ],
+        &quot;type&quot; : &quot;object&quot;
+      },
       &quot;previewCanvasControlOverrides&quot; : {
         &quot;description&quot; : &quot;Optional overrides for the canvas controls, only applicable to preview types that support each kind of canvas control. Use the `supportedCanvasControlOverrides` field of the output of a previous invocation of this tool to get the available canvas control overrides and their supported values.&quot;,
         &quot;properties&quot; : {
@@ -7147,6 +7238,34 @@ about the running state.</div>
   &quot;name&quot; : &quot;RenderPreview&quot;,
   &quot;outputSchema&quot; : {
     &quot;properties&quot; : {
+      &quot;availableRenderDestinations&quot; : {
+        &quot;description&quot; : &quot;The render destinations that are available for rendering this preview, given the currently active scheme. The `identifier` of any of these entries can be passed in the `identifier` field of the `preferredRenderDestination` input field of a subsequent invocation to render the preview on that specific destination. Omitted if the available destinations could not be determined.&quot;,
+        &quot;items&quot; : {
+          &quot;properties&quot; : {
+            &quot;deviceModelName&quot; : {
+              &quot;description&quot; : &quot;Display name of the device model of the render destination (e.g. “iPhone 15 Pro”, “iPad Pro (11-inch) (2nd generation)”, “My Mac”). Omitted if not known.&quot;,
+              &quot;type&quot; : &quot;string&quot;
+            },
+            &quot;identifier&quot; : {
+              &quot;description&quot; : &quot;Opaque, stable identifier for this render destination. Pass this exact value back in the `identifier` field of the `preferredRenderDestination` input field of a subsequent invocation to render the preview on this destination.&quot;,
+              &quot;type&quot; : &quot;string&quot;
+            },
+            &quot;platformName&quot; : {
+              &quot;description&quot; : &quot;Display name of the platform of the render destination (e.g. “iOS Simulator”, “macOS”). Omitted if not known.&quot;,
+              &quot;type&quot; : &quot;string&quot;
+            },
+            &quot;systemVersion&quot; : {
+              &quot;description&quot; : &quot;Operating System version of the render destination, in major.minor[.patch] form (e.g. “17.2”). Omitted if not known.&quot;,
+              &quot;type&quot; : &quot;string&quot;
+            }
+          },
+          &quot;required&quot; : [
+            &quot;identifier&quot;
+          ],
+          &quot;type&quot; : &quot;object&quot;
+        },
+        &quot;type&quot; : &quot;array&quot;
+      },
       &quot;displayName&quot; : {
         &quot;description&quot; : &quot;The display name of the rendered preview, matching the title shown for it in Xcode’s canvas tab. For a named `#Preview(\&quot;Some Name\&quot;)` this is the given name; for an unnamed `#Preview` it is derived from the file name; for a `PreviewProvider` it is derived from the type name.&quot;,
         &quot;type&quot; : &quot;string&quot;
@@ -7178,6 +7297,10 @@ about the running state.</div>
             &quot;description&quot; : &quot;Display name of the device model of the render destination (e.g. “iPhone 15 Pro”, “iPad Pro (11-inch) (2nd generation)”, “My Mac”). Omitted if not known.&quot;,
             &quot;type&quot; : &quot;string&quot;
           },
+          &quot;identifier&quot; : {
+            &quot;description&quot; : &quot;Opaque, stable identifier for this render destination. Pass this exact value back in the `identifier` field of the `preferredRenderDestination` input field of a subsequent invocation to render the preview on this destination.&quot;,
+            &quot;type&quot; : &quot;string&quot;
+          },
           &quot;platformName&quot; : {
             &quot;description&quot; : &quot;Display name of the platform of the render destination (e.g. “iOS Simulator”, “macOS”). Omitted if not known.&quot;,
             &quot;type&quot; : &quot;string&quot;
@@ -7188,7 +7311,7 @@ about the running state.</div>
           }
         },
         &quot;required&quot; : [
-
+          &quot;identifier&quot;
         ],
         &quot;type&quot; : &quot;object&quot;
       },

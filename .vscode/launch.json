@@ -1,0 +1,24 @@
+{
+    "configurations": [
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:xcode-mcp-docs}",
+            "name": "Debug xcode-mcp-docs",
+            "target": "xcode-mcp-docs",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug xcode-mcp-docs"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:xcode-mcp-docs}",
+            "name": "Release xcode-mcp-docs",
+            "target": "xcode-mcp-docs",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release xcode-mcp-docs"
+        }
+    ]
+}

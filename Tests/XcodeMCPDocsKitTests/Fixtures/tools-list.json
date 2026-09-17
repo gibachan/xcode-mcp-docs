@@ -1,0 +1,316 @@
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "result": {
+    "tools": [
+      {
+        "description": "Add a new entitlement to the project's entitlements file.\n\nMost Apple APIs do NOT require an entitlement. Only use this tool when a\nfeature requires a code-signing entitlement. These are things like access\nto protected hardware, sandboxed data stores shared between apps, paid\ntransaction processing, or privileged inter-process communication.\n\nDo NOT use this tool or add an entitlement for:\n- Adding UI components or using standard frameworks (SwiftUI, UIKit, MapKit, AVFoundation, CoreLocation, etc.)\n- Privacy usage descriptions — those are Info.plist keys, not entitlements. You should use the AddInfoPlist tool.\n- General feature development that doesn't involve a restricted system capability\n\nWhen in doubt, do NOT call this tool or add an entitlement. If you run\ninto debugging issues after adopting a new API — such as failures\nconnecting to system XPC services — you can add the entitlement then.\n\nParameters:\n    - targetName: The name of the Xcode target to add the entitlement to. Use another tool to discover the target names if you don't already know them.\n    - entitlementKey: The entitlement key you want to add.\n    - entitlementValueType: The type of the value — 'bool', 'string', 'int', 'stringArray', or 'dictionary'.\n    - entitlementValue: The value as a string (for bool, string, or int types). For bool, pass 'true' or 'false'.\n    - entitlementValueItems: Array of strings (only for stringArray type).\n    - entitlementDictionaryItems: JSON-encoded dictionary (only for dictionary type).\n\nNote: It is IMPORTANT that you do not edit the entitlement file directly unless told to. ALWAYS call this tool if you need to change the entitlement file.",
+        "inputSchema": {
+          "properties": {
+            "entitlementDictionaryItems": {
+              "description": "A JSON-encoded string representing a dictionary. Required when entitlementValueType is 'dictionary'. Example: '{\"key\":\"value\"}'.",
+              "type": "string"
+            },
+            "entitlementKey": {
+              "description": "The entitlement key you want to add.",
+              "type": "string"
+            },
+            "entitlementValue": {
+              "description": "The entitlement value as a string. Required when entitlementValueType is 'bool', 'string', or 'int'. For bool, pass 'true' or 'false'. For int, pass the number as a string. Not used for stringArray or dictionary types.",
+              "type": "string"
+            },
+            "entitlementValueItems": {
+              "description": "Array of string values. Required when entitlementValueType is 'stringArray'.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "entitlementValueType": {
+              "description": "The type of the entitlement value. Most entitlements are 'bool' (pass entitlementValue 'true'). Some are 'string' (pass the value in entitlementValue). A few are 'stringArray' (pass values in entitlementValueItems instead). Use 'dictionary' for entitlements whose value is a plist dictionary (pass JSON in entitlementDictionaryItems).",
+              "enum": [
+                "bool",
+                "string",
+                "int",
+                "stringArray",
+                "dictionary"
+              ],
+              "type": "string"
+            },
+            "projectPath": {
+              "description": "The project-organization path of the .xcodeproj that owns the target (e.g., 'MyApp/MyApp.xcodeproj'). Only needed when the same target name exists in multiple projects in the workspace; omit otherwise.",
+              "type": "string"
+            },
+            "targetName": {
+              "description": "The name of the Xcode target to add the entitlement to. Use another tool (e.g. GetTargetBuildSettings) to discover target names if they are not already known.",
+              "type": "string"
+            },
+            "workspaceIdentifier": {
+              "description": "Identifies the target workspace directly (used in headless mode): its workspace identifier (e.g. workspace1) or its absolute path.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "targetName",
+            "entitlementKey",
+            "entitlementValueType"
+          ],
+          "type": "object"
+        },
+        "name": "AddEntitlement",
+        "outputSchema": {
+          "properties": {
+            "errorDescription": {
+              "description": "An optional description of the error when trying to add the entitlement. This string will be available if result is false.",
+              "type": "string"
+            },
+            "result": {
+              "description": "A boolean to indicate if adding the entitlement was successful or not.",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "result"
+          ],
+          "type": "object"
+        },
+        "title": "Add Entitlement"
+      },
+      {
+        "description": "Runs specific tests using the active scheme's active test plan",
+        "inputSchema": {
+          "properties": {
+            "tests": {
+              "description": "Array of test specifiers to run. Each specifier contains 'targetName' and 'testIdentifier' fields. Use GetTestList action to discover available tests and their identifiers, then extract the 'targetName' and 'identifier' fields from the TestActionInfo results to construct TestActionSpecifier objects.",
+              "items": {
+                "properties": {
+                  "targetName": {
+                    "description": "The test target name",
+                    "type": "string"
+                  },
+                  "testIdentifier": {
+                    "description": "Test identifier in XCTestIdentifier format",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "targetName",
+                  "testIdentifier"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "workspaceIdentifier": {
+              "description": "Identifies the target workspace directly (used in headless mode): its workspace identifier (e.g. workspace1) or its absolute path.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "tests"
+          ],
+          "type": "object"
+        },
+        "name": "RunSomeTests",
+        "outputSchema": {
+          "properties": {
+            "activeTestPlanName": {
+              "description": "Active test plan name",
+              "type": "string"
+            },
+            "counts": {
+              "description": "Test execution counts",
+              "properties": {
+                "expectedFailures": {
+                  "description": "Number of expected failures",
+                  "type": "integer"
+                },
+                "failed": {
+                  "description": "Number of failed tests",
+                  "type": "integer"
+                },
+                "notRun": {
+                  "description": "Number of tests not run",
+                  "type": "integer"
+                },
+                "passed": {
+                  "description": "Number of passed tests",
+                  "type": "integer"
+                },
+                "skipped": {
+                  "description": "Number of skipped tests",
+                  "type": "integer"
+                },
+                "total": {
+                  "description": "Total test count",
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "total",
+                "passed",
+                "failed",
+                "skipped",
+                "expectedFailures",
+                "notRun"
+              ],
+              "type": "object"
+            },
+            "fullConsoleLogsPath": {
+              "description": "A text file path containing all logs that would be printed in the console from `print`, `NSLog`, etc. during test build and execution.",
+              "type": "string"
+            },
+            "fullSummaryPath": {
+              "description": "A text file path containing all test results and complete issue details in textual form",
+              "type": "string"
+            },
+            "message": {
+              "description": "Additional information about truncation",
+              "type": "string"
+            },
+            "results": {
+              "description": "Results for each test (truncated at 100, failures shown first)",
+              "items": {
+                "properties": {
+                  "displayName": {
+                    "description": "Human-readable test name",
+                    "type": "string"
+                  },
+                  "errorMessages": {
+                    "description": "Error messages",
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "identifier": {
+                    "description": "Test identifier in XCTestIdentifier format",
+                    "type": "string"
+                  },
+                  "state": {
+                    "description": "Execution state",
+                    "type": "string"
+                  },
+                  "targetName": {
+                    "description": "The test target name",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "targetName",
+                  "identifier",
+                  "displayName",
+                  "state",
+                  "errorMessages"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "schemeName": {
+              "description": "Active scheme name",
+              "type": "string"
+            },
+            "summary": {
+              "description": "Test execution summary",
+              "type": "string"
+            },
+            "totalResults": {
+              "description": "Total number of test results before truncation",
+              "type": "integer"
+            },
+            "truncated": {
+              "description": "Whether results were truncated due to exceeding 100 results",
+              "type": "boolean"
+            },
+            "xcresultBundlePath": {
+              "description": "Path to the .xcresult bundle produced by the test run. Can be parsed with xcresulttool. If code coverage is enabled, xccov can extract coverage data from this bundle.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "summary",
+            "counts",
+            "results",
+            "schemeName",
+            "truncated",
+            "totalResults",
+            "fullSummaryPath"
+          ],
+          "type": "object"
+        },
+        "title": "Run Some Tests"
+      },
+      {
+        "description": "Reads the contents of a file within the Xcode project organization. Returns content in cat -n format with line numbers. Supports reading up to 600 lines by default with optional offset and limit parameters for large files. Output is JSON-encoded e.g. backslashes, quotes, and newlines appear escaped (\\\\, \\\", \\n). Account for this when interpreting file content.",
+        "inputSchema": {
+          "properties": {
+            "filePath": {
+              "description": "The path to the file within the Xcode project organization (e.g., 'ProjectName/Sources/MyFile.swift')",
+              "type": "string"
+            },
+            "limit": {
+              "description": "The number of lines to read (only provide if the file is too large to read at once)",
+              "type": "integer"
+            },
+            "offset": {
+              "description": "The line number to start reading from (only provide if the file is too large to read at once)",
+              "type": "integer"
+            },
+            "workspaceIdentifier": {
+              "description": "Identifies the target workspace directly (used in headless mode): its workspace identifier (e.g. workspace1) or its absolute path.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "filePath"
+          ],
+          "type": "object"
+        },
+        "name": "XcodeRead",
+        "outputSchema": {
+          "properties": {
+            "content": {
+              "description": "The file contents formatted with line numbers (cat -n style)",
+              "type": "string"
+            },
+            "filePath": {
+              "description": "The project path that was read",
+              "type": "string"
+            },
+            "fileSize": {
+              "description": "Size of the file in bytes",
+              "type": "integer"
+            },
+            "linesRead": {
+              "description": "Number of lines actually read",
+              "type": "integer"
+            },
+            "message": {
+              "description": "Optional message about the operation",
+              "type": "string"
+            },
+            "startLine": {
+              "description": "The line number where reading started",
+              "type": "integer"
+            },
+            "totalLines": {
+              "description": "Total number of lines in the file",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "content",
+            "filePath",
+            "totalLines",
+            "linesRead",
+            "startLine",
+            "fileSize"
+          ],
+          "type": "object"
+        },
+        "title": "Read"
+      }
+    ]
+  }
+}

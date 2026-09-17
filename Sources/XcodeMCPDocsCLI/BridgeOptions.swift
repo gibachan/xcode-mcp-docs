@@ -38,7 +38,16 @@ struct BridgeOptions: ParsableArguments {
         let bridgeURL = try XcodeLocator.resolveBridge(xcode: xcode)
         let client = MCPBridgeClient(bridgeURL: bridgeURL, xcodePID: pid, timeout: timeout)
         do {
-            return try client.fetchCatalog()
+            let catalog = try client.fetchCatalog()
+            return ToolCatalog(
+                bridgePath: catalog.bridgePath,
+                protocolVersion: catalog.protocolVersion,
+                serverInfo: catalog.serverInfo,
+                tools: catalog.tools,
+                fetchedAt: catalog.fetchedAt,
+                xcodeVersion: XcodeLocator.xcodeVersion(forBridge: bridgeURL),
+                xcodeBuild: XcodeLocator.xcodeBuild(forBridge: bridgeURL)
+            )
         } catch let error as XcodeMCPDocsError {
             throw refine(error, bridgeURL: bridgeURL)
         }

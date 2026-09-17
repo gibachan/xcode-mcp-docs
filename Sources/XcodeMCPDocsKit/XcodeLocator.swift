@@ -67,6 +67,22 @@ public enum XcodeLocator {
         return xcodeVersion(forBundle: bundleURL)
     }
 
+    /// The `DTXcodeBuild` of an `Xcode.app` bundle, e.g. `"27A266"` — the build identifier shown
+    /// in parentheses in Xcode's "About Xcode" window.
+    public static func xcodeBuild(forBundle bundleURL: URL) -> String? {
+        let infoPlistURL = bundleURL.appendingPathComponent("Contents/Info.plist")
+        guard let data = try? Data(contentsOf: infoPlistURL),
+              let plist = try? PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any]
+        else { return nil }
+        return plist["DTXcodeBuild"] as? String
+    }
+
+    /// The Xcode build of the bundle that contains the given `mcpbridge`, if it can be resolved.
+    public static func xcodeBuild(forBridge bridgeURL: URL) -> String? {
+        guard let bundleURL = bundle(forBridge: bridgeURL) else { return nil }
+        return xcodeBuild(forBundle: bundleURL)
+    }
+
     /// Xcodes installed under `/Applications`, used to guide the user in error messages.
     public static func installedXcodes() -> [URL] {
         let applications = URL(fileURLWithPath: "/Applications")

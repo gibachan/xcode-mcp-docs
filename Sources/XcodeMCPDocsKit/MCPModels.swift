@@ -54,18 +54,26 @@ public struct ToolCatalog: Codable, Equatable {
     public let serverInfo: ServerInfo
     public let tools: [Tool]
     public let fetchedAt: Date
+    /// `CFBundleShortVersionString` of the Xcode that owns `bridgePath`, e.g. `"27.0"`.
+    public let xcodeVersion: String?
+    /// `DTXcodeBuild` of the Xcode that owns `bridgePath`, e.g. `"27A266"`.
+    public let xcodeBuild: String?
 
     public init(
         bridgePath: String,
         protocolVersion: String,
         serverInfo: ServerInfo,
         tools: [Tool],
-        fetchedAt: Date = Date()
+        fetchedAt: Date = Date(),
+        xcodeVersion: String? = nil,
+        xcodeBuild: String? = nil
     ) {
         self.bridgePath = bridgePath
         self.protocolVersion = protocolVersion
         self.serverInfo = serverInfo
         self.tools = tools
         self.fetchedAt = fetchedAt
+        self.xcodeVersion = xcodeVersion
+        self.xcodeBuild = xcodeBuild
     }
 }

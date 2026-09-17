@@ -13,13 +13,19 @@ final class RenderingTests: XCTestCase {
         return try JSONDecoder().decode(Response.self, from: Data(contentsOf: url)).result.tools
     }
 
-    private func makeCatalog(_ tools: [Tool]) -> ToolCatalog {
+    private func makeCatalog(
+        _ tools: [Tool],
+        xcodeVersion: String? = nil,
+        xcodeBuild: String? = nil
+    ) -> ToolCatalog {
         ToolCatalog(
             bridgePath: "/Applications/Xcode-27.app/Contents/Developer/usr/bin/mcpbridge",
             protocolVersion: "2024-11-05",
             serverInfo: ServerInfo(name: "xcode-tools", version: "25317"),
             tools: tools,
-            fetchedAt: Date(timeIntervalSince1970: 0)
+            fetchedAt: Date(timeIntervalSince1970: 0),
+            xcodeVersion: xcodeVersion,
+            xcodeBuild: xcodeBuild
         )
     }
 
@@ -99,6 +105,20 @@ final class RenderingTests: XCTestCase {
     func testHTMLReportsToolCount() throws {
         let html = HTMLRenderer().render(makeCatalog(try fixtureTools()))
         XCTAssertTrue(html.contains("<span id=\"count\">3</span> / 3"))
+    }
+
+    func testHTMLShowsXcodeVersionAndBuildWhenKnown() throws {
+        let html = HTMLRenderer().render(
+            makeCatalog(try fixtureTools(), xcodeVersion: "27.0", xcodeBuild: "27A266")
+        )
+        XCTAssertTrue(html.contains("<dt>Xcode version</dt><dd>27.0</dd>"))
+        XCTAssertTrue(html.contains("<dt>Build</dt><dd>27A266</dd>"))
+    }
+
+    func testHTMLOmitsXcodeMetaWhenUnknown() throws {
+        let html = HTMLRenderer().render(makeCatalog(try fixtureTools()))
+        XCTAssertFalse(html.contains("<dt>Xcode version</dt>"))
+        XCTAssertFalse(html.contains("<dt>Build</dt>"))
     }
 
     // MARK: - Markdown

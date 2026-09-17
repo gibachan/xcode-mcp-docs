@@ -174,9 +174,11 @@ td.desc-cell { width: 55%; white-space: pre-wrap; }
 <header>
 <h1>Xcode MCP Tools</h1>
 <dl class="meta">
+<div><dt>Xcode version</dt><dd>27.2</dd></div>
+<div><dt>Build</dt><dd>27B5019i</dd></div>
 <div><dt>Server</dt><dd>xcode-tools 25434.2</dd></div>
 <div><dt>MCP protocol</dt><dd>2024-11-05</dd></div>
-<div><dt>Tools</dt><dd><span id="count">53</span> / 53</dd></div>
+<div><dt>Tools</dt><dd><span id="count">54</span> / 54</dd></div>
 </dl>
 <input id="search" type="search" placeholder="Filter by tool name or description" autocomplete="off">
 <div class="chips">
@@ -191,6 +193,7 @@ td.desc-cell { width: 55%; white-space: pre-wrap; }
 <button class="chip" data-category="Device interaction">Device interaction</button>
 <button class="chip" data-category="Localization">Localization</button>
 <button class="chip" data-category="Crashes / Performance">Crashes / Performance</button>
+<button class="chip" data-category="Documentation">Documentation</button>
 </div>
 </header>
 <main>
@@ -9795,6 +9798,148 @@ Some diagnostic types (e.g., energy) support both App Store and TestFlight data.
       &quot;message&quot;,
       &quot;bundleId&quot;,
       &quot;diagnosticType&quot;
+    ],
+    &quot;type&quot; : &quot;object&quot;
+  }
+}</pre>
+</details>
+</div>
+</article>
+</details>
+<details class="category" data-category="Documentation" open>
+<summary><span class="category-name">Documentation</span><span class="badge">1</span></summary>
+<article class="tool" id="tool-DocumentationSearch" data-search="documentationsearch searches apple developer documentation using semantic matching.">
+<h3 class="tool-heading">
+<a class="tool-name" href="#tool-DocumentationSearch">DocumentationSearch</a>
+<span class="tool-summary">Searches Apple Developer Documentation using semantic matching.</span>
+</h3>
+<div class="body">
+<div class="desc">Searches Apple Developer Documentation using semantic matching.</div>
+<h4>Input</h4>
+<table>
+<thead><tr><th>Name</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+<tbody>
+<tr>
+<td class="name" style="padding-left: 12px"><code>query</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">Required</td>
+<td class="desc-cell">The search query</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>frameworks</code></td>
+<td class="type"><code>array&lt;string&gt;</code></td>
+<td class="required"></td>
+<td class="desc-cell">Framework(s) to search in. Searches all frameworks if not specified.</td>
+</tr>
+</tbody>
+</table>
+<h4>Output</h4>
+<table>
+<thead><tr><th>Name</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+<tbody>
+<tr>
+<td class="name" style="padding-left: 12px"><code>documents</code></td>
+<td class="type"><code>array&lt;object&gt;</code></td>
+<td class="required">Required</td>
+<td class="desc-cell">The documents most relevant to the search query</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>contents</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">Required</td>
+<td class="desc-cell">The document contents</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>kind</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">Required</td>
+<td class="desc-cell">The kind of document</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>score</code></td>
+<td class="type"><code>number</code></td>
+<td class="required">Required</td>
+<td class="desc-cell">The matching score of the document</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>title</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">Required</td>
+<td class="desc-cell">The document title</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>uri</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">Required</td>
+<td class="desc-cell">The document uri</td>
+</tr>
+</tbody>
+</table>
+<details class="raw">
+<summary>Raw JSON</summary>
+<pre>{
+  &quot;description&quot; : &quot;Searches Apple Developer Documentation using semantic matching.&quot;,
+  &quot;inputSchema&quot; : {
+    &quot;properties&quot; : {
+      &quot;frameworks&quot; : {
+        &quot;description&quot; : &quot;Framework(s) to search in. Searches all frameworks if not specified.&quot;,
+        &quot;items&quot; : {
+          &quot;type&quot; : &quot;string&quot;
+        },
+        &quot;type&quot; : &quot;array&quot;
+      },
+      &quot;query&quot; : {
+        &quot;description&quot; : &quot;The search query&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      }
+    },
+    &quot;required&quot; : [
+      &quot;query&quot;
+    ],
+    &quot;type&quot; : &quot;object&quot;
+  },
+  &quot;name&quot; : &quot;DocumentationSearch&quot;,
+  &quot;outputSchema&quot; : {
+    &quot;properties&quot; : {
+      &quot;documents&quot; : {
+        &quot;description&quot; : &quot;The documents most relevant to the search query&quot;,
+        &quot;items&quot; : {
+          &quot;properties&quot; : {
+            &quot;contents&quot; : {
+              &quot;description&quot; : &quot;The document contents&quot;,
+              &quot;type&quot; : &quot;string&quot;
+            },
+            &quot;kind&quot; : {
+              &quot;description&quot; : &quot;The kind of document&quot;,
+              &quot;type&quot; : &quot;string&quot;
+            },
+            &quot;score&quot; : {
+              &quot;description&quot; : &quot;The matching score of the document&quot;,
+              &quot;type&quot; : &quot;number&quot;
+            },
+            &quot;title&quot; : {
+              &quot;description&quot; : &quot;The document title&quot;,
+              &quot;type&quot; : &quot;string&quot;
+            },
+            &quot;uri&quot; : {
+              &quot;description&quot; : &quot;The document uri&quot;,
+              &quot;type&quot; : &quot;string&quot;
+            }
+          },
+          &quot;required&quot; : [
+            &quot;title&quot;,
+            &quot;uri&quot;,
+            &quot;contents&quot;,
+            &quot;score&quot;,
+            &quot;kind&quot;
+          ],
+          &quot;type&quot; : &quot;object&quot;
+        },
+        &quot;type&quot; : &quot;array&quot;
+      }
+    },
+    &quot;required&quot; : [
+      &quot;documents&quot;
     ],
     &quot;type&quot; : &quot;object&quot;
   }

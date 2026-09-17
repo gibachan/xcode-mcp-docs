@@ -50,6 +50,7 @@ private extension HTMLRenderer {
         <header>
         <h1>Xcode MCP Tools</h1>
         <dl class="meta">
+        \(renderXcodeMeta(catalog))
         <div><dt>Server</dt><dd>\(escape(catalog.serverInfo.name)) \(escape(catalog.serverInfo.version))</dd></div>
         <div><dt>MCP protocol</dt><dd>\(escape(catalog.protocolVersion))</dd></div>
         <div><dt>Tools</dt><dd><span id="count">\(catalog.tools.count)</span> / \(catalog.tools.count)</dd></div>
@@ -59,6 +60,15 @@ private extension HTMLRenderer {
         \(chips)
         </div>
         </header>
+        """
+    }
+
+    /// Renders the Xcode version/build rows, or nothing when neither could be resolved.
+    func renderXcodeMeta(_ catalog: ToolCatalog) -> String {
+        guard catalog.xcodeVersion != nil || catalog.xcodeBuild != nil else { return "" }
+        return """
+        <div><dt>Xcode version</dt><dd>\(escape(catalog.xcodeVersion ?? "Unknown"))</dd></div>
+        <div><dt>Build</dt><dd>\(escape(catalog.xcodeBuild ?? "Unknown"))</dd></div>
         """
     }
 

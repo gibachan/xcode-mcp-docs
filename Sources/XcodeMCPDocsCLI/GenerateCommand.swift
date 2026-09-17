@@ -77,9 +77,7 @@ struct GenerateCommand: ParsableCommand {
     /// `Documentations/xcode-<version>-mcp-tools.<ext>`. Falls back to a version-less name when
     /// the Xcode version can't be determined, e.g. `--xcode` pointed straight at `mcpbridge`.
     private static func defaultOutputPath(for catalog: ToolCatalog, format: Format) -> String {
-        let bridgeURL = URL(fileURLWithPath: catalog.bridgePath)
-        let base = XcodeLocator.xcodeVersion(forBridge: bridgeURL)
-            .map { "xcode-\($0)-mcp-tools" } ?? "xcode-mcp-tools"
+        let base = catalog.xcodeVersion.map { "xcode-\($0)-mcp-tools" } ?? "xcode-mcp-tools"
         return "Documentations/\(base).\(format.fileExtension)"
     }
 

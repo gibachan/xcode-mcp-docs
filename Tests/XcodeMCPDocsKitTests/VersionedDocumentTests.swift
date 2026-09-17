@@ -65,4 +65,24 @@ final class IndexRendererTests: XCTestCase {
         let html = IndexRenderer().render(documents)
         XCTAssertTrue(html.contains(#">Xcode 27.2 (Beta)</option>"#))
     }
+
+    // MARK: - Language switcher
+
+    func testOmitsLanguagePickerWhenNoTranslationExists() {
+        let documents = [VersionedDocument(fileName: "xcode-27.0-mcp-tools.html")!]
+        let html = IndexRenderer().render(documents)
+        XCTAssertFalse(html.contains(#"id="lang""#))
+    }
+
+    func testShowsLanguagePickerAndFlagsTranslatedVersions() {
+        let documents = [
+            VersionedDocument(fileName: "xcode-27.0-mcp-tools.html")!,
+            VersionedDocument(fileName: "xcode-26.6-mcp-tools.html")!,
+        ]
+        let html = IndexRenderer().render(documents, availableInJapanese: ["xcode-27.0-mcp-tools.html"])
+
+        XCTAssertTrue(html.contains(#"id="lang""#))
+        XCTAssertTrue(html.contains(#"<option value="xcode-27.0-mcp-tools.html" selected data-ja="1">Xcode 27.0</option>"#))
+        XCTAssertTrue(html.contains(#"<option value="xcode-26.6-mcp-tools.html">Xcode 26.6</option>"#))
+    }
 }

@@ -6,18 +6,30 @@ public struct IndexRenderer {
     public init() {}
 
     /// `documents` should already be in the order to display, e.g.
-    /// `VersionedDocument.sortedByVersionDescending(...)`.
-    public func render(_ documents: [VersionedDocument]) -> String {
+    /// `VersionedDocument.sortedByVersionDescending(...)`. `availableInJapanese` is the set of
+    /// `fileName`s (matching `documents`) that also have a translation at `ja/<fileName>`; the
+    /// language switcher is only rendered when at least one document has one.
+    public func render(_ documents: [VersionedDocument], availableInJapanese: Set<String> = []) -> String {
         guard let first = documents.first else { return Self.emptyPage }
 
         let options = documents.enumerated()
             .map { index, document in
                 let label = document.isBeta ? "Xcode \(document.version) (Beta)" : "Xcode \(document.version)"
+                let jaAttr = availableInJapanese.contains(document.fileName) ? " data-ja=\"1\"" : ""
                 return """
-                <option value="\(escape(document.fileName))"\(index == 0 ? " selected" : "")>\(escape(label))</option>
+                <option value="\(escape(document.fileName))"\(index == 0 ? " selected" : "")\(jaAttr)>\(escape(label))</option>
                 """
             }
             .joined(separator: "\n")
+
+        let hasAnyTranslation = documents.contains { availableInJapanese.contains($0.fileName) }
+        let langPicker = hasAnyTranslation ? """
+
+        <select id="lang" aria-label="Language">
+        <option value="en" selected>English</option>
+        <option value="ja">日本語</option>
+        </select>
+        """ : ""
 
         return """
         <!DOCTYPE html>
@@ -38,7 +50,7 @@ public struct IndexRenderer {
         </div>
         <select id="version" aria-label="Xcode version">
         \(options)
-        </select>
+        </select>\(langPicker)
         </header>
         <iframe id="doc" src="\(escape(first.fileName))" title="Xcode MCP Docs"></iframe>
         <script>
@@ -111,7 +123,7 @@ private extension IndexRenderer {
     .title-group { display: flex; flex-direction: column; gap: 2px; }
     h1 { margin: 0; font-size: 15px; font-weight: 600; }
     .subtitle { margin: 0; font-size: 12px; color: var(--muted); }
-    #version {
+    #version, #lang {
       font-size: 14px;
       padding: 5px 8px;
       color: var(--text);
@@ -129,6 +141,7 @@ private extension IndexRenderer {
 
     static let script = """
     const select = document.getElementById('version');
+    const lang = document.getElementById('lang');
     const frame = document.getElementById('doc');
 
     function toolAnchor() {
@@ -137,12 +150,22 @@ private extension IndexRenderer {
       return hash.startsWith('tool-') ? hash : `tool-${hash}`;
     }
 
+    // Falls back to English when the selected version has no Japanese translation
+    // (the option's data-ja attribute, set by the renderer, says which ones do).
+    function currentFile() {
+      const option = select.options[select.selectedIndex];
+      const hasJapanese = option && option.dataset.ja === '1';
+      return lang && lang.value === 'ja' && hasJapanese ? `ja/${select.value}` : select.value;
+    }
+
     function loadFrame() {
       const anchor = toolAnchor();
-      frame.src = anchor ? `${select.value}#${anchor}` : select.value;
+      const file = currentFile();
+      frame.src = anchor ? `${file}#${anchor}` : file;
     }
 
     select.addEventListener('change', loadFrame);
+    if (lang) lang.addEventListener('change', loadFrame);
     window.addEventListener('hashchange', loadFrame);
     loadFrame();
     """

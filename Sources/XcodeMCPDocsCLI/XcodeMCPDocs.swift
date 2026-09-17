@@ -6,7 +6,7 @@ struct XcodeMCPDocs: ParsableCommand {
         commandName: "xcode-mcp-docs",
         abstract: "Fetch and list the tools exposed by Xcode's MCP server.",
         version: "0.1.0",
-        subcommands: [ListCommand.self, ShowCommand.self, GenerateCommand.self, JSONCommand.self],
+        subcommands: [ListCommand.self, ShowCommand.self, GenerateCommand.self, JSONCommand.self, ReindexCommand.self],
         defaultSubcommand: ListCommand.self
     )
 }

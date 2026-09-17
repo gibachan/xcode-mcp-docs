@@ -62,7 +62,7 @@ struct GenerateCommand: ParsableCommand {
         )
 
         if usesDefaultLocation, format == .html {
-            try Self.updateIndex(in: directory)
+            try IndexBuilder.rebuildIndex(in: directory)
         }
 
         if openAfterWrite {
@@ -80,14 +80,5 @@ struct GenerateCommand: ParsableCommand {
         let versionSegment = catalog.xcodeVersion.map { catalog.xcodeIsBeta ? "\($0)-beta" : $0 }
         let base = versionSegment.map { "xcode-\($0)-mcp-tools" } ?? "xcode-mcp-tools"
         return "Documentations/\(base).\(format.fileExtension)"
-    }
-
-    /// Rebuilds the version switcher from every HTML doc already sitting in `directory`,
-    /// including ones generated in earlier runs for other Xcode versions.
-    private static func updateIndex(in directory: URL) throws {
-        let files = try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)
-        let documents = VersionedDocument.sortedByVersionDescending(files.compactMap(VersionedDocument.init(fileURL:)))
-        let indexURL = directory.appendingPathComponent("index.html")
-        try Data(IndexRenderer().render(documents).utf8).write(to: indexURL)
     }
 }

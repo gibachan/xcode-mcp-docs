@@ -81,11 +81,22 @@ needs translating individually, on top of the fixed UI strings below.
 
 ### Do translate
 
-- Every tool's description (`<div class="desc">...</div>`) and its one-line
-  summary (`<span class="tool-summary">...</span>`) — free-form prose,
-  translate it naturally rather than literally.
+- Every tool's description (`<div class="desc">...</div>`) — free-form prose,
+  translate it naturally rather than literally. The one-line summary
+  (`<span class="tool-summary">...</span>`) is *not* translated separately —
+  see the note below, it's mechanically derived from the description.
 - Every parameter/property's description (the `<td class="desc-cell">`
-  text) in the Input/Output tables.
+  text) in the Input/Output tables. A few of these cells have a
+  `<div class="enum">...</div>` embedded inside them, not just as a sibling —
+  translate the surrounding prose but leave that inner div in English like
+  any other enum list (see "Never translate" above).
+- Inside any of the prose above, if the English text quotes a literal value
+  the tool actually accepts or returns (e.g. `'bool'`, `"target"`, a literal
+  flag name) — keep that literal untouched, in its original quoting, the same
+  as an enum value. Translate the sentence around it, not the literal itself.
+- Literal backslash-escape examples describing JSON/regex syntax (e.g. `\d`,
+  `\\d`, `’`) — copy these exactly, character for character, rather than
+  retyping them; it's easy to silently drop or double a backslash by hand.
 - The fixed UI strings and category labels below — use these exact
   translations every time so repeated runs stay consistent across versions:
 
@@ -127,16 +138,22 @@ needs translating individually, on top of the fixed UI strings below.
   both places, but leave both `data-category="..."` attributes in English as
   noted above.
 
-### `data-search` needs special handling
+### Two values are *derived*, not translated by hand
 
-The English page builds this attribute as
-`"\(tool.name) \(tool.description)".lowercased()` so the live search box can
-match against it. If you leave it in English on the Japanese page, someone
-typing a Japanese search term will get zero results. Rewrite it as the tool
-name followed by the *translated* description, lowercased the same way:
-`data-search="xcodelisttargets <translated description, lowercased>"`. Since
-lowercasing only affects ASCII letters, this is safe to do even though most
-of the string will be Japanese text.
+The English generator computes these mechanically from `tool.description`
+(see `Sources/XcodeMCPDocsKit/MCPModels.swift`'s `Tool.summary` and
+`Sources/XcodeMCPDocsKit/HTMLRenderer.swift`'s `renderTool`) — do the same
+from your *translated* description rather than translating them separately,
+or the summary/search text can drift out of sync with the desc:
+
+- `<span class="tool-summary">` = the first line of the (translated)
+  description, up to the first line break.
+- `data-search="..."` = `tool.name + " " + description`, lowercased. Rewrite
+  it as the tool name followed by the translated description, lowercased the
+  same way: `data-search="xcodelisttargets <translated description,
+  lowercased>"`. Lowercasing only affects ASCII letters, so this is safe even
+  though most of the string will be Japanese text — without it, someone
+  typing a Japanese search term gets zero results.
 
 ### `<title>`
 

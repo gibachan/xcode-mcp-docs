@@ -1,0 +1,3815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Xcode MCP Tools</title>
+<style>
+:root {
+  --bg: #ffffff;
+  --surface: #f6f7f9;
+  --border: #d8dce2;
+  --text: #1c1e21;
+  --muted: #666d78;
+  --accent: #0b6bcb;
+  --accent-soft: #e5f0fb;
+  --required: #b3261e;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #16181c;
+    --surface: #1e2126;
+    --border: #333840;
+    --text: #e6e8eb;
+    --muted: #9aa2ad;
+    --accent: #6fb3f2;
+    --accent-soft: #1d2c3d;
+    --required: #f2887f;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", sans-serif;
+  font-size: 15px;
+  line-height: 1.7;
+}
+code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  padding: 20px 24px 12px;
+}
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 24px;
+  margin: 0 0 14px;
+  font-size: 13px;
+}
+.meta div { display: flex; gap: 6px; }
+.meta dt { color: var(--muted); margin: 0; }
+.meta dd { margin: 0; }
+#search {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 15px;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+#search:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.chip {
+  padding: 5px 12px;
+  font-size: 13px;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+}
+.chip:hover { color: var(--text); }
+.chip.selected {
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+main { padding: 20px 24px 64px; }
+.category { margin-bottom: 28px; }
+.category > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: sticky;
+  top: 0;
+  padding: 8px 0;
+  margin-bottom: 10px;
+  background: var(--bg);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  list-style: none;
+  border-bottom: 1px solid var(--border);
+}
+.category > summary::-webkit-details-marker { display: none; }
+.category > summary::before {
+  content: "▾";
+  font-size: 11px;
+  width: 12px;
+}
+.category:not([open]) > summary::before { content: "▸"; }
+.category:not([open]) > summary { margin-bottom: 0; }
+.category > summary:hover { color: var(--text); }
+.badge {
+  padding: 1px 8px;
+  font-size: 12px;
+  font-weight: 400;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+}
+.tool {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 10px;
+  padding: 12px 16px 16px;
+}
+.tool-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  margin: 0;
+}
+.tool-name {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  text-decoration: none;
+}
+.tool-name:hover { color: var(--accent); }
+.tool-summary { flex: 1; min-width: 200px; font-size: 13px; font-weight: 400; color: var(--muted); }
+.body { font-size: 15px; }
+.desc {
+  white-space: pre-wrap;
+  font-size: 15px;
+  margin: 10px 0;
+}
+h4 { margin: 18px 0 6px; font-size: 13px; color: var(--muted); }
+.empty { margin: 0; font-size: 13px; color: var(--muted); }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { text-align: left; vertical-align: top; padding: 7px 10px; border-top: 1px solid var(--border); }
+th { color: var(--muted); font-weight: 600; }
+td.name code { font-weight: 600; }
+td.type code { color: var(--accent); }
+td.required { color: var(--required); white-space: nowrap; }
+td.desc-cell { width: 55%; white-space: pre-wrap; }
+.enum { margin-top: 3px; color: var(--muted); }
+.raw { margin-top: 16px; }
+.raw > summary { font-size: 13px; color: var(--muted); cursor: pointer; }
+.raw pre {
+  overflow-x: auto;
+  padding: 12px;
+  margin: 8px 0 0;
+  font-size: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+#empty { color: var(--muted); font-size: 15px; }
+</style>
+</head>
+<body>
+<header>
+<dl class="meta">
+<div><dt>Xcodeバージョン</dt><dd>26.6</dd></div>
+<div><dt>ビルド</dt><dd>17F112</dd></div>
+<div><dt>サーバー</dt><dd>xcode-tools 24952</dd></div>
+<div><dt>MCPプロトコル</dt><dd>2024-11-05</dd></div>
+<div><dt>ツール</dt><dd><span id="count">20</span> / 20</dd></div>
+</dl>
+<input id="search" type="search" placeholder="ツール名または説明で絞り込み" autocomplete="off">
+<div class="chips">
+<button class="chip selected" data-category="">すべて</button>
+<button class="chip" data-category="Workspace / Project">ワークスペース / プロジェクト</button>
+<button class="chip" data-category="File operations">ファイル操作</button>
+<button class="chip" data-category="Build / Run">ビルド / 実行</button>
+<button class="chip" data-category="Testing">テスト</button>
+<button class="chip" data-category="Preview / Debugging">プレビュー / デバッグ</button>
+<button class="chip" data-category="Other">その他</button>
+</div>
+</header>
+<main>
+<details class="category" data-category="Workspace / Project" open>
+<summary><span class="category-name">ワークスペース / プロジェクト</span><span class="badge">1</span></summary>
+<article class="tool" id="tool-XcodeRefreshCodeIssuesInFile" data-search="xcoderefreshcodeissuesinfile xcodeプロジェクト内のファイルについて、現在のコンパイラ診断情報(エラー、警告、ノート)を取得します。重大度レベルやメッセージを含む、整形された診断情報を返します。">
+<h3 class="tool-heading">
+<a class="tool-name" href="#tool-XcodeRefreshCodeIssuesInFile">XcodeRefreshCodeIssuesInFile</a>
+<span class="tool-summary">Xcodeプロジェクト内のファイルについて、現在のコンパイラ診断情報(エラー、警告、ノート)を取得します。重大度レベルやメッセージを含む、整形された診断情報を返します。</span>
+</h3>
+<div class="body">
+<div class="desc">Xcodeプロジェクト内のファイルについて、現在のコンパイラ診断情報(エラー、警告、ノート)を取得します。重大度レベルやメッセージを含む、整形された診断情報を返します。</div>
+<h4>入力</h4>
+<table>
+<thead><tr><th>名前</th><th>型</th><th>必須</th><th>説明</th></tr></thead>
+<tbody>
+<tr>
+<td class="name" style="padding-left: 12px"><code>filePath</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">Xcodeプロジェクトの構成内にあるファイルへのパス(例: 'ProjectName/Sources/MyFile.swift')</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>tabIdentifier</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">ワークスペースタブの識別子</td>
+</tr>
+</tbody>
+</table>
+<h4>出力</h4>
+<table>
+<thead><tr><th>名前</th><th>型</th><th>必須</th><th>説明</th></tr></thead>
+<tbody>
+<tr>
+<td class="name" style="padding-left: 12px"><code>content</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">重大度レベルとメッセージを含む、整形された診断出力</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>diagnosticsCount</code></td>
+<td class="type"><code>integer</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">見つかった診断の件数(エラー、警告、ノート)</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>filePath</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">診断のために確認されたプロジェクトパス</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>success</code></td>
+<td class="type"><code>boolean</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">診断の取得が正常に完了したかどうか</td>
+</tr>
+</tbody>
+</table>
+<details class="raw">
+<summary>生のJSON</summary>
+<pre>{
+  &quot;description&quot; : &quot;Retrieves current compiler diagnostics (errors, warnings, notes) for a file in the Xcode project. Returns formatted diagnostic information including severity levels and messages.&quot;,
+  &quot;inputSchema&quot; : {
+    &quot;properties&quot; : {
+      &quot;filePath&quot; : {
+        &quot;description&quot; : &quot;The path to the file within the Xcode project organization (e.g., 'ProjectName/Sources/MyFile.swift')&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;tabIdentifier&quot; : {
+        &quot;description&quot; : &quot;The workspace tab identifier&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      }
+    },
+    &quot;required&quot; : [
+      &quot;tabIdentifier&quot;,
+      &quot;filePath&quot;
+    ],
+    &quot;type&quot; : &quot;object&quot;
+  },
+  &quot;name&quot; : &quot;XcodeRefreshCodeIssuesInFile&quot;,
+  &quot;outputSchema&quot; : {
+    &quot;properties&quot; : {
+      &quot;content&quot; : {
+        &quot;description&quot; : &quot;Formatted diagnostic output with severity levels and messages&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;diagnosticsCount&quot; : {
+        &quot;description&quot; : &quot;Number of diagnostics found (errors, warnings, notes)&quot;,
+        &quot;type&quot; : &quot;integer&quot;
+      },
+      &quot;filePath&quot; : {
+        &quot;description&quot; : &quot;The project path that was checked for diagnostics&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;success&quot; : {
+        &quot;description&quot; : &quot;Whether the diagnostic retrieval completed successfully&quot;,
+        &quot;type&quot; : &quot;boolean&quot;
+      }
+    },
+    &quot;required&quot; : [
+      &quot;filePath&quot;,
+      &quot;diagnosticsCount&quot;,
+      &quot;content&quot;,
+      &quot;success&quot;
+    ],
+    &quot;type&quot; : &quot;object&quot;
+  }
+}</pre>
+</details>
+</div>
+</article>
+</details>
+<details class="category" data-category="File operations" open>
+<summary><span class="category-name">ファイル操作</span><span class="badge">9</span></summary>
+<article class="tool" id="tool-XcodeGlob" data-search="xcodeglob ワイルドカードパターンに一致するファイルを、xcodeプロジェクト構造内で検索します。ファイルシステムの構造ではなく、xcodeプロジェクトの構成に対して動作します。パターンの例: '*.swift'、'**/*.json'、'src/**/*.{swift,m}'。パターンが指定されない場合は、デフォルトで '**/*'(すべてのファイル)になります。">
+<h3 class="tool-heading">
+<a class="tool-name" href="#tool-XcodeGlob">XcodeGlob</a>
+<span class="tool-summary">ワイルドカードパターンに一致するファイルを、Xcodeプロジェクト構造内で検索します。ファイルシステムの構造ではなく、Xcodeプロジェクトの構成に対して動作します。パターンの例: '*.swift'、'**/*.json'、'src/**/*.{swift,m}'。パターンが指定されない場合は、デフォルトで '**/*'(すべてのファイル)になります。</span>
+</h3>
+<div class="body">
+<div class="desc">ワイルドカードパターンに一致するファイルを、Xcodeプロジェクト構造内で検索します。ファイルシステムの構造ではなく、Xcodeプロジェクトの構成に対して動作します。パターンの例: '*.swift'、'**/*.json'、'src/**/*.{swift,m}'。パターンが指定されない場合は、デフォルトで '**/*'(すべてのファイル)になります。</div>
+<h4>入力</h4>
+<table>
+<thead><tr><th>名前</th><th>型</th><th>必須</th><th>説明</th></tr></thead>
+<tbody>
+<tr>
+<td class="name" style="padding-left: 12px"><code>tabIdentifier</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">ワークスペースタブの識別子</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>path</code></td>
+<td class="type"><code>string</code></td>
+<td class="required"></td>
+<td class="desc-cell">検索対象のプロジェクトディレクトリ(任意、デフォルトはルート)</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>pattern</code></td>
+<td class="type"><code>string</code></td>
+<td class="required"></td>
+<td class="desc-cell">ワイルドカード(* ** ? [abc] {swift,m})を使ったファイルのマッチングパターン。例: '*.swift'、'**/*.json'、'src/**/*.{swift,m}'。指定しない場合は '**/*' がデフォルトになります。</td>
+</tr>
+</tbody>
+</table>
+<h4>出力</h4>
+<table>
+<thead><tr><th>名前</th><th>型</th><th>必須</th><th>説明</th></tr></thead>
+<tbody>
+<tr>
+<td class="name" style="padding-left: 12px"><code>matches</code></td>
+<td class="type"><code>array&lt;string&gt;</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">プロジェクト構造内で一致するファイルパスの一覧(100件で切り詰め)。最近更新されたものが先頭になるようにソートされます</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>pattern</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">検索対象となったパターン</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>searchPath</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">検索されたプロジェクトパス</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>totalFound</code></td>
+<td class="type"><code>integer</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">切り詰める前に見つかったファイルの総数</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>truncated</code></td>
+<td class="type"><code>boolean</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">100ファイルを超えたために結果が切り詰められたかどうか</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>message</code></td>
+<td class="type"><code>string</code></td>
+<td class="required"></td>
+<td class="desc-cell">検索結果についての追加情報を含む、任意のメッセージ</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>packageDependencies</code></td>
+<td class="type"><code>array&lt;string&gt;</code></td>
+<td class="required"></td>
+<td class="desc-cell">結果にファイルが含まれているパッケージ依存関係の名前</td>
+</tr>
+</tbody>
+</table>
+<details class="raw">
+<summary>生のJSON</summary>
+<pre>{
+  &quot;description&quot; : &quot;Finds files in the Xcode project structure matching wildcard patterns. Works on Xcode project organization, not filesystem structure. Example patterns: '*.swift', '**/*.json', 'src/**/*.{swift,m}'. If no pattern is provided, defaults to '**/*' (all files).&quot;,
+  &quot;inputSchema&quot; : {
+    &quot;properties&quot; : {
+      &quot;path&quot; : {
+        &quot;description&quot; : &quot;Which project directory to search in (optional, defaults to root)&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;pattern&quot; : {
+        &quot;description&quot; : &quot;File matching pattern using wildcards (* ** ? [abc] {swift,m}). Examples: '*.swift', '**/*.json', 'src/**/*.{swift,m}'. Defaults to '**/*' if not provided.&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;tabIdentifier&quot; : {
+        &quot;description&quot; : &quot;The workspace tab identifier&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      }
+    },
+    &quot;required&quot; : [
+      &quot;tabIdentifier&quot;
+    ],
+    &quot;type&quot; : &quot;object&quot;
+  },
+  &quot;name&quot; : &quot;XcodeGlob&quot;,
+  &quot;outputSchema&quot; : {
+    &quot;properties&quot; : {
+      &quot;matches&quot; : {
+        &quot;description&quot; : &quot;List of matching file paths in the project structure (truncated at 100), sorted by most recently modified first&quot;,
+        &quot;items&quot; : {
+          &quot;type&quot; : &quot;string&quot;
+        },
+        &quot;type&quot; : &quot;array&quot;
+      },
+      &quot;message&quot; : {
+        &quot;description&quot; : &quot;Optional message with additional information about the search results&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;packageDependencies&quot; : {
+        &quot;description&quot; : &quot;Names of package dependencies whose files are included in results&quot;,
+        &quot;items&quot; : {
+          &quot;type&quot; : &quot;string&quot;
+        },
+        &quot;type&quot; : &quot;array&quot;
+      },
+      &quot;pattern&quot; : {
+        &quot;description&quot; : &quot;The pattern that was searched for&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;searchPath&quot; : {
+        &quot;description&quot; : &quot;The project path that was searched&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;totalFound&quot; : {
+        &quot;description&quot; : &quot;Total number of files found before truncation&quot;,
+        &quot;type&quot; : &quot;integer&quot;
+      },
+      &quot;truncated&quot; : {
+        &quot;description&quot; : &quot;Whether results were truncated due to exceeding 100 files&quot;,
+        &quot;type&quot; : &quot;boolean&quot;
+      }
+    },
+    &quot;required&quot; : [
+      &quot;matches&quot;,
+      &quot;pattern&quot;,
+      &quot;searchPath&quot;,
+      &quot;truncated&quot;,
+      &quot;totalFound&quot;
+    ],
+    &quot;type&quot; : &quot;object&quot;
+  }
+}</pre>
+</details>
+</div>
+</article>
+<article class="tool" id="tool-XcodeGrep" data-search="xcodegrep 正規表現を使って、xcodeプロジェクト構造内のファイルからテキストパターンを検索します。ファイルシステムの構造ではなく、xcodeプロジェクトの構成に対して動作します。重要: 'pattern' 引数を必ず指定してください — 指定しないとこのツールは失敗します。入力パターンは標準の正規表現構文を使用し、jsonエスケープではありません。ソースコード内の \d を検索するには、パターンとして \\d を使用してください。出力結果はjsonエンコードされているため、バックスラッシュ、引用符、改行はエスケープされた形で表示されます(\\, \&quot;, \n)。">
+<h3 class="tool-heading">
+<a class="tool-name" href="#tool-XcodeGrep">XcodeGrep</a>
+<span class="tool-summary">正規表現を使って、Xcodeプロジェクト構造内のファイルからテキストパターンを検索します。ファイルシステムの構造ではなく、Xcodeプロジェクトの構成に対して動作します。重要: 'pattern' 引数を必ず指定してください — 指定しないとこのツールは失敗します。入力パターンは標準の正規表現構文を使用し、JSONエスケープではありません。ソースコード内の \d を検索するには、パターンとして \\d を使用してください。出力結果はJSONエンコードされているため、バックスラッシュ、引用符、改行はエスケープされた形で表示されます(\\, \&quot;, \n)。</span>
+</h3>
+<div class="body">
+<div class="desc">正規表現を使って、Xcodeプロジェクト構造内のファイルからテキストパターンを検索します。ファイルシステムの構造ではなく、Xcodeプロジェクトの構成に対して動作します。重要: 'pattern' 引数を必ず指定してください — 指定しないとこのツールは失敗します。入力パターンは標準の正規表現構文を使用し、JSONエスケープではありません。ソースコード内の \d を検索するには、パターンとして \\d を使用してください。出力結果はJSONエンコードされているため、バックスラッシュ、引用符、改行はエスケープされた形で表示されます(\\, \&quot;, \n)。</div>
+<h4>入力</h4>
+<table>
+<thead><tr><th>名前</th><th>型</th><th>必須</th><th>説明</th></tr></thead>
+<tbody>
+<tr>
+<td class="name" style="padding-left: 12px"><code>pattern</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">正規表現を使って検索するテキスト。必須: 'pattern' 引数を必ず指定してください — 指定しないとこのツールは失敗します。</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>tabIdentifier</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">ワークスペースタブの識別子</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>glob</code></td>
+<td class="type"><code>string</code></td>
+<td class="required"></td>
+<td class="desc-cell">このパターンに一致するファイルのみを検索する</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>headLimit</code></td>
+<td class="type"><code>integer</code></td>
+<td class="required"></td>
+<td class="desc-cell">N件の結果で停止する</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>ignoreCase</code></td>
+<td class="type"><code>boolean</code></td>
+<td class="required"></td>
+<td class="desc-cell">マッチング時に大文字小文字を区別しない</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>linesAfter</code></td>
+<td class="type"><code>integer</code></td>
+<td class="required"></td>
+<td class="desc-cell">コンテキストとして、各一致箇所の後にN行を表示する</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>linesBefore</code></td>
+<td class="type"><code>integer</code></td>
+<td class="required"></td>
+<td class="desc-cell">コンテキストとして、各一致箇所の前にN行を表示する</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>linesContext</code></td>
+<td class="type"><code>integer</code></td>
+<td class="required"></td>
+<td class="desc-cell">各一致箇所の前後にN行を表示する</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>multiline</code></td>
+<td class="type"><code>boolean</code></td>
+<td class="required"></td>
+<td class="desc-cell">パターンが複数行にわたることを許可する</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>outputMode</code></td>
+<td class="type"><code>string</code></td>
+<td class="required"></td>
+<td class="desc-cell">返す内容: content、files_with_matches、count のいずれか(デフォルト: files_with_matches)<div class="enum">content / filesWithMatches / count</div></td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>path</code></td>
+<td class="type"><code>string</code></td>
+<td class="required"></td>
+<td class="desc-cell">検索対象 - プロジェクト内のファイルまたはディレクトリ(デフォルトはルート)</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>showLineNumbers</code></td>
+<td class="type"><code>boolean</code></td>
+<td class="required"></td>
+<td class="desc-cell">結果とともに行番号を表示する(contentモードのみ)</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>type</code></td>
+<td class="type"><code>string</code></td>
+<td class="required"></td>
+<td class="desc-cell">よく使われるファイルタイプ(swift、js、pyなど)のショートカット</td>
+</tr>
+</tbody>
+</table>
+<h4>出力</h4>
+<table>
+<thead><tr><th>名前</th><th>型</th><th>必須</th><th>説明</th></tr></thead>
+<tbody>
+<tr>
+<td class="name" style="padding-left: 12px"><code>matchCount</code></td>
+<td class="type"><code>integer</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">見つかった一致の総数</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>pattern</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">検索対象となったパターン</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>results</code></td>
+<td class="type"><code>array&lt;string&gt;</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">出力モードに基づく検索結果</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>searchPath</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">検索されたプロジェクトパス</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>truncated</code></td>
+<td class="type"><code>boolean</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">制限によって結果が切り詰められたかどうか</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>message</code></td>
+<td class="type"><code>string</code></td>
+<td class="required"></td>
+<td class="desc-cell">検索結果についての追加情報</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>packageDependencies</code></td>
+<td class="type"><code>array&lt;string&gt;</code></td>
+<td class="required"></td>
+<td class="desc-cell">結果にファイルが含まれているパッケージ依存関係の名前</td>
+</tr>
+</tbody>
+</table>
+<details class="raw">
+<summary>生のJSON</summary>
+<pre>{
+  &quot;description&quot; : &quot;Searches for text patterns in files within the Xcode project structure using regex. Works on Xcode project organization, not filesystem structure. CRITICAL: Must include a 'pattern' argument - this tool will fail without it. Input pattern uses standard regex syntax, not JSON escaping. To find \\d in source code, use pattern \\\\d. Output results are JSON-encoded e.g. backslashes, quotes, and newlines appear escaped (\\\\, \\\&quot;, \\n).&quot;,
+  &quot;inputSchema&quot; : {
+    &quot;properties&quot; : {
+      &quot;glob&quot; : {
+        &quot;description&quot; : &quot;Only search files matching this pattern&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;headLimit&quot; : {
+        &quot;description&quot; : &quot;Stop after N results&quot;,
+        &quot;type&quot; : &quot;integer&quot;
+      },
+      &quot;ignoreCase&quot; : {
+        &quot;description&quot; : &quot;Ignore case when matching&quot;,
+        &quot;type&quot; : &quot;boolean&quot;
+      },
+      &quot;linesAfter&quot; : {
+        &quot;description&quot; : &quot;Show N lines after each match for context&quot;,
+        &quot;type&quot; : &quot;integer&quot;
+      },
+      &quot;linesBefore&quot; : {
+        &quot;description&quot; : &quot;Show N lines before each match for context&quot;,
+        &quot;type&quot; : &quot;integer&quot;
+      },
+      &quot;linesContext&quot; : {
+        &quot;description&quot; : &quot;Show N lines both before and after each match&quot;,
+        &quot;type&quot; : &quot;integer&quot;
+      },
+      &quot;multiline&quot; : {
+        &quot;description&quot; : &quot;Allow patterns to span multiple lines&quot;,
+        &quot;type&quot; : &quot;boolean&quot;
+      },
+      &quot;outputMode&quot; : {
+        &quot;description&quot; : &quot;What to return: content, files_with_matches, or count (default: files_with_matches)&quot;,
+        &quot;enum&quot; : [
+          &quot;content&quot;,
+          &quot;filesWithMatches&quot;,
+          &quot;count&quot;
+        ],
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;path&quot; : {
+        &quot;description&quot; : &quot;Where to search - file or directory in project (defaults to root)&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;pattern&quot; : {
+        &quot;description&quot; : &quot;Text to search for using regex. REQUIRED: Must include a 'pattern' argument - this tool will fail without it.&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;showLineNumbers&quot; : {
+        &quot;description&quot; : &quot;Show line numbers with results (content mode only)&quot;,
+        &quot;type&quot; : &quot;boolean&quot;
+      },
+      &quot;tabIdentifier&quot; : {
+        &quot;description&quot; : &quot;The workspace tab identifier&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;type&quot; : {
+        &quot;description&quot; : &quot;Shortcut for common file types (swift, js, py, etc.)&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      }
+    },
+    &quot;required&quot; : [
+      &quot;tabIdentifier&quot;,
+      &quot;pattern&quot;
+    ],
+    &quot;type&quot; : &quot;object&quot;
+  },
+  &quot;name&quot; : &quot;XcodeGrep&quot;,
+  &quot;outputSchema&quot; : {
+    &quot;properties&quot; : {
+      &quot;matchCount&quot; : {
+        &quot;description&quot; : &quot;Total number of matches found&quot;,
+        &quot;type&quot; : &quot;integer&quot;
+      },
+      &quot;message&quot; : {
+        &quot;description&quot; : &quot;Additional information about the search results&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;packageDependencies&quot; : {
+        &quot;description&quot; : &quot;Names of package dependencies whose files are included in results&quot;,
+        &quot;items&quot; : {
+          &quot;type&quot; : &quot;string&quot;
+        },
+        &quot;type&quot; : &quot;array&quot;
+      },
+      &quot;pattern&quot; : {
+        &quot;description&quot; : &quot;The pattern that was searched for&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;results&quot; : {
+        &quot;description&quot; : &quot;Search results based on output mode&quot;,
+        &quot;items&quot; : {
+          &quot;type&quot; : &quot;string&quot;
+        },
+        &quot;type&quot; : &quot;array&quot;
+      },
+      &quot;searchPath&quot; : {
+        &quot;description&quot; : &quot;The project path that was searched&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;truncated&quot; : {
+        &quot;description&quot; : &quot;Whether results were truncated due to limits&quot;,
+        &quot;type&quot; : &quot;boolean&quot;
+      }
+    },
+    &quot;required&quot; : [
+      &quot;results&quot;,
+      &quot;pattern&quot;,
+      &quot;searchPath&quot;,
+      &quot;matchCount&quot;,
+      &quot;truncated&quot;
+    ],
+    &quot;type&quot; : &quot;object&quot;
+  }
+}</pre>
+</details>
+</div>
+</article>
+<article class="tool" id="tool-XcodeLS" data-search="xcodels 指定したパスにあるxcodeプロジェクト構造内のファイルとディレクトリを一覧表示します。ファイルシステムの構造ではなく、xcodeプロジェクトの構成に対して動作します。">
+<h3 class="tool-heading">
+<a class="tool-name" href="#tool-XcodeLS">XcodeLS</a>
+<span class="tool-summary">指定したパスにあるXcodeプロジェクト構造内のファイルとディレクトリを一覧表示します。ファイルシステムの構造ではなく、Xcodeプロジェクトの構成に対して動作します。</span>
+</h3>
+<div class="body">
+<div class="desc">指定したパスにあるXcodeプロジェクト構造内のファイルとディレクトリを一覧表示します。ファイルシステムの構造ではなく、Xcodeプロジェクトの構成に対して動作します。</div>
+<h4>入力</h4>
+<table>
+<thead><tr><th>名前</th><th>型</th><th>必須</th><th>説明</th></tr></thead>
+<tbody>
+<tr>
+<td class="name" style="padding-left: 12px"><code>path</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">参照するプロジェクトパス(例: 'ProjectName/Sources/')</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>tabIdentifier</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">ワークスペースタブの識別子</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>ignore</code></td>
+<td class="type"><code>array&lt;string&gt;</code></td>
+<td class="required"></td>
+<td class="desc-cell">これらのパターンに一致するファイル/フォルダをスキップする</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>recursive</code></td>
+<td class="type"><code>boolean</code></td>
+<td class="required"></td>
+<td class="desc-cell">すべてのファイルを再帰的に一覧表示する(100行で切り詰め)。デフォルト: true</td>
+</tr>
+</tbody>
+</table>
+<h4>出力</h4>
+<table>
+<thead><tr><th>名前</th><th>型</th><th>必須</th><th>説明</th></tr></thead>
+<tbody>
+<tr>
+<td class="name" style="padding-left: 12px"><code>items</code></td>
+<td class="type"><code>array&lt;string&gt;</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">指定したパスにあるファイルとディレクトリの一覧</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>path</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">参照された、解決済みのプロジェクトパス</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>message</code></td>
+<td class="type"><code>string</code></td>
+<td class="required"></td>
+<td class="desc-cell">この操作についての任意のメッセージ</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>packageDependencies</code></td>
+<td class="type"><code>array&lt;string&gt;</code></td>
+<td class="required"></td>
+<td class="desc-cell">通常のプロジェクトディレクトリではなく、パッケージ依存関係である項目の名前</td>
+</tr>
+</tbody>
+</table>
+<details class="raw">
+<summary>生のJSON</summary>
+<pre>{
+  &quot;description&quot; : &quot;Lists files and directories in the Xcode project structure at the specified path. Works on Xcode project organization, not filesystem structure.&quot;,
+  &quot;inputSchema&quot; : {
+    &quot;properties&quot; : {
+      &quot;ignore&quot; : {
+        &quot;description&quot; : &quot;Skip files/folders matching these patterns&quot;,
+        &quot;items&quot; : {
+          &quot;type&quot; : &quot;string&quot;
+        },
+        &quot;type&quot; : &quot;array&quot;
+      },
+      &quot;path&quot; : {
+        &quot;description&quot; : &quot;The project path to browse (e.g., 'ProjectName/Sources/')&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;recursive&quot; : {
+        &quot;description&quot; : &quot;Recursively list all files (truncated to 100 lines). Default: true&quot;,
+        &quot;type&quot; : &quot;boolean&quot;
+      },
+      &quot;tabIdentifier&quot; : {
+        &quot;description&quot; : &quot;The workspace tab identifier&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      }
+    },
+    &quot;required&quot; : [
+      &quot;tabIdentifier&quot;,
+      &quot;path&quot;
+    ],
+    &quot;type&quot; : &quot;object&quot;
+  },
+  &quot;name&quot; : &quot;XcodeLS&quot;,
+  &quot;outputSchema&quot; : {
+    &quot;properties&quot; : {
+      &quot;items&quot; : {
+        &quot;description&quot; : &quot;List of files and directories at the specified path&quot;,
+        &quot;items&quot; : {
+          &quot;type&quot; : &quot;string&quot;
+        },
+        &quot;type&quot; : &quot;array&quot;
+      },
+      &quot;message&quot; : {
+        &quot;description&quot; : &quot;Optional message about the operation&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;packageDependencies&quot; : {
+        &quot;description&quot; : &quot;Names of items that are package dependencies rather than regular project directories&quot;,
+        &quot;items&quot; : {
+          &quot;type&quot; : &quot;string&quot;
+        },
+        &quot;type&quot; : &quot;array&quot;
+      },
+      &quot;path&quot; : {
+        &quot;description&quot; : &quot;The resolved project path that was browsed&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      }
+    },
+    &quot;required&quot; : [
+      &quot;items&quot;,
+      &quot;path&quot;
+    ],
+    &quot;type&quot; : &quot;object&quot;
+  }
+}</pre>
+</details>
+</div>
+</article>
+<article class="tool" id="tool-XcodeMV" data-search="xcodemv プロジェクトナビゲータ内のファイルやディレクトリを移動またはリネームします。ファイルシステム上の操作にも対応します。">
+<h3 class="tool-heading">
+<a class="tool-name" href="#tool-XcodeMV">XcodeMV</a>
+<span class="tool-summary">プロジェクトナビゲータ内のファイルやディレクトリを移動またはリネームします。ファイルシステム上の操作にも対応します。</span>
+</h3>
+<div class="body">
+<div class="desc">プロジェクトナビゲータ内のファイルやディレクトリを移動またはリネームします。ファイルシステム上の操作にも対応します。</div>
+<h4>入力</h4>
+<table>
+<thead><tr><th>名前</th><th>型</th><th>必須</th><th>説明</th></tr></thead>
+<tbody>
+<tr>
+<td class="name" style="padding-left: 12px"><code>destinationPath</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">移動先(move用)または新しい名前(rename用)を示す、プロジェクトナビゲータの相対パス</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>sourcePath</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">移動/リネームする対象項目の、プロジェクトナビゲータ相対パス</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>tabIdentifier</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">ワークスペースタブの識別子</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>operation</code></td>
+<td class="type"><code>object</code></td>
+<td class="required"></td>
+<td class="desc-cell">実行する移動操作の種類<div class="enum">move / copy</div></td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>rawValue</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">移動操作の種類</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>overwriteExisting</code></td>
+<td class="type"><code>boolean</code></td>
+<td class="required"></td>
+<td class="desc-cell">移動先に既存のファイルがある場合に上書きするかどうか</td>
+</tr>
+</tbody>
+</table>
+<h4>出力</h4>
+<table>
+<thead><tr><th>名前</th><th>型</th><th>必須</th><th>説明</th></tr></thead>
+<tbody>
+<tr>
+<td class="name" style="padding-left: 12px"><code>message</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">操作を説明する結果メッセージ</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>operation</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">実行された操作</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>success</code></td>
+<td class="type"><code>boolean</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">移動/リネーム操作が成功したかどうか</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>destinationFinalPath</code></td>
+<td class="type"><code>string</code></td>
+<td class="required"></td>
+<td class="desc-cell">移動/リネーム後の項目の最終的なパス</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>sourceOriginalPath</code></td>
+<td class="type"><code>string</code></td>
+<td class="required"></td>
+<td class="desc-cell">対象項目の元のパス</td>
+</tr>
+</tbody>
+</table>
+<details class="raw">
+<summary>生のJSON</summary>
+<pre>{
+  &quot;description&quot; : &quot;Moves or renames files and directories in the project navigator with support for filesystem operations.&quot;,
+  &quot;inputSchema&quot; : {
+    &quot;properties&quot; : {
+      &quot;destinationPath&quot; : {
+        &quot;description&quot; : &quot;Project navigator relative path for the destination (for move) or new name (for rename)&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;operation&quot; : {
+        &quot;description&quot; : &quot;The type of move operation to perform&quot;,
+        &quot;enum&quot; : [
+          &quot;move&quot;,
+          &quot;copy&quot;
+        ],
+        &quot;properties&quot; : {
+          &quot;rawValue&quot; : {
+            &quot;description&quot; : &quot;Move operation type&quot;,
+            &quot;type&quot; : &quot;string&quot;
+          }
+        },
+        &quot;required&quot; : [
+          &quot;rawValue&quot;
+        ],
+        &quot;type&quot; : &quot;object&quot;
+      },
+      &quot;overwriteExisting&quot; : {
+        &quot;description&quot; : &quot;Whether to overwrite existing files at the destination&quot;,
+        &quot;type&quot; : &quot;boolean&quot;
+      },
+      &quot;sourcePath&quot; : {
+        &quot;description&quot; : &quot;Project navigator relative path of the source item to move/rename&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;tabIdentifier&quot; : {
+        &quot;description&quot; : &quot;The workspace tab identifier&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      }
+    },
+    &quot;required&quot; : [
+      &quot;tabIdentifier&quot;,
+      &quot;sourcePath&quot;,
+      &quot;destinationPath&quot;
+    ],
+    &quot;type&quot; : &quot;object&quot;
+  },
+  &quot;name&quot; : &quot;XcodeMV&quot;,
+  &quot;outputSchema&quot; : {
+    &quot;properties&quot; : {
+      &quot;destinationFinalPath&quot; : {
+        &quot;description&quot; : &quot;The final path of the moved/renamed item&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;message&quot; : {
+        &quot;description&quot; : &quot;Result message describing the operation&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;operation&quot; : {
+        &quot;description&quot; : &quot;The operation that was performed&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;sourceOriginalPath&quot; : {
+        &quot;description&quot; : &quot;The original path of the source item&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;success&quot; : {
+        &quot;description&quot; : &quot;Whether the move/rename operation succeeded&quot;,
+        &quot;type&quot; : &quot;boolean&quot;
+      }
+    },
+    &quot;required&quot; : [
+      &quot;success&quot;,
+      &quot;operation&quot;,
+      &quot;message&quot;
+    ],
+    &quot;type&quot; : &quot;object&quot;
+  }
+}</pre>
+</details>
+</div>
+</article>
+<article class="tool" id="tool-XcodeMakeDir" data-search="xcodemakedir xcodeプロジェクト構造内にディレクトリとグループを作成します。">
+<h3 class="tool-heading">
+<a class="tool-name" href="#tool-XcodeMakeDir">XcodeMakeDir</a>
+<span class="tool-summary">Xcodeプロジェクト構造内にディレクトリとグループを作成します。</span>
+</h3>
+<div class="body">
+<div class="desc">Xcodeプロジェクト構造内にディレクトリとグループを作成します。</div>
+<h4>入力</h4>
+<table>
+<thead><tr><th>名前</th><th>型</th><th>必須</th><th>説明</th></tr></thead>
+<tbody>
+<tr>
+<td class="name" style="padding-left: 12px"><code>directoryPath</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">作成するディレクトリのプロジェクトナビゲータ相対パス</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>tabIdentifier</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">ワークスペースタブの識別子</td>
+</tr>
+</tbody>
+</table>
+<h4>出力</h4>
+<table>
+<thead><tr><th>名前</th><th>型</th><th>必須</th><th>説明</th></tr></thead>
+<tbody>
+<tr>
+<td class="name" style="padding-left: 12px"><code>message</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">操作を説明する結果メッセージ</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>success</code></td>
+<td class="type"><code>boolean</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">ディレクトリの作成が成功したかどうか</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>createdPath</code></td>
+<td class="type"><code>string</code></td>
+<td class="required"></td>
+<td class="desc-cell">作成されたディレクトリのパス</td>
+</tr>
+</tbody>
+</table>
+<details class="raw">
+<summary>生のJSON</summary>
+<pre>{
+  &quot;description&quot; : &quot;Creates directories and groups in the Xcode project structure.&quot;,
+  &quot;inputSchema&quot; : {
+    &quot;properties&quot; : {
+      &quot;directoryPath&quot; : {
+        &quot;description&quot; : &quot;Project navigator relative path for the directory to create&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;tabIdentifier&quot; : {
+        &quot;description&quot; : &quot;The workspace tab identifier&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      }
+    },
+    &quot;required&quot; : [
+      &quot;tabIdentifier&quot;,
+      &quot;directoryPath&quot;
+    ],
+    &quot;type&quot; : &quot;object&quot;
+  },
+  &quot;name&quot; : &quot;XcodeMakeDir&quot;,
+  &quot;outputSchema&quot; : {
+    &quot;properties&quot; : {
+      &quot;createdPath&quot; : {
+        &quot;description&quot; : &quot;The path of the created directory&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;message&quot; : {
+        &quot;description&quot; : &quot;Result message describing the operation&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;success&quot; : {
+        &quot;description&quot; : &quot;Whether the directory creation succeeded&quot;,
+        &quot;type&quot; : &quot;boolean&quot;
+      }
+    },
+    &quot;required&quot; : [
+      &quot;success&quot;,
+      &quot;message&quot;
+    ],
+    &quot;type&quot; : &quot;object&quot;
+  }
+}</pre>
+</details>
+</div>
+</article>
+<article class="tool" id="tool-XcodeRM" data-search="xcoderm xcodeプロジェクト構造からファイルやディレクトリを削除します。オプションで、実体となるファイルをファイルシステムから削除することもできます。">
+<h3 class="tool-heading">
+<a class="tool-name" href="#tool-XcodeRM">XcodeRM</a>
+<span class="tool-summary">Xcodeプロジェクト構造からファイルやディレクトリを削除します。オプションで、実体となるファイルをファイルシステムから削除することもできます。</span>
+</h3>
+<div class="body">
+<div class="desc">Xcodeプロジェクト構造からファイルやディレクトリを削除します。オプションで、実体となるファイルをファイルシステムから削除することもできます。</div>
+<h4>入力</h4>
+<table>
+<thead><tr><th>名前</th><th>型</th><th>必須</th><th>説明</th></tr></thead>
+<tbody>
+<tr>
+<td class="name" style="padding-left: 12px"><code>path</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">削除するプロジェクトパス(例: 'ProjectName/Sources/MyFile.swift')</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>tabIdentifier</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">ワークスペースタブの識別子</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>deleteFiles</code></td>
+<td class="type"><code>boolean</code></td>
+<td class="required"></td>
+<td class="desc-cell">実体となるファイルもゴミ箱に移動する(デフォルトはtrue)</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>recursive</code></td>
+<td class="type"><code>boolean</code></td>
+<td class="required"></td>
+<td class="desc-cell">ディレクトリとその内容を再帰的に削除する</td>
+</tr>
+</tbody>
+</table>
+<h4>出力</h4>
+<table>
+<thead><tr><th>名前</th><th>型</th><th>必須</th><th>説明</th></tr></thead>
+<tbody>
+<tr>
+<td class="name" style="padding-left: 12px"><code>message</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">削除操作についての状態メッセージ</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>removedPath</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">削除されたプロジェクトパス</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>success</code></td>
+<td class="type"><code>boolean</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">削除操作が成功したかどうか</td>
+</tr>
+</tbody>
+</table>
+<details class="raw">
+<summary>生のJSON</summary>
+<pre>{
+  &quot;description&quot; : &quot;Removes files and directories from the Xcode project structure and optionally deletes the underlying files from the filesystem.&quot;,
+  &quot;inputSchema&quot; : {
+    &quot;properties&quot; : {
+      &quot;deleteFiles&quot; : {
+        &quot;description&quot; : &quot;Also move the underlying files to Trash (defaults to true)&quot;,
+        &quot;type&quot; : &quot;boolean&quot;
+      },
+      &quot;path&quot; : {
+        &quot;description&quot; : &quot;The project path to remove (e.g., 'ProjectName/Sources/MyFile.swift')&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;recursive&quot; : {
+        &quot;description&quot; : &quot;Remove directories and their contents recursively&quot;,
+        &quot;type&quot; : &quot;boolean&quot;
+      },
+      &quot;tabIdentifier&quot; : {
+        &quot;description&quot; : &quot;The workspace tab identifier&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      }
+    },
+    &quot;required&quot; : [
+      &quot;tabIdentifier&quot;,
+      &quot;path&quot;
+    ],
+    &quot;type&quot; : &quot;object&quot;
+  },
+  &quot;name&quot; : &quot;XcodeRM&quot;,
+  &quot;outputSchema&quot; : {
+    &quot;properties&quot; : {
+      &quot;message&quot; : {
+        &quot;description&quot; : &quot;Status message about the removal operation&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;removedPath&quot; : {
+        &quot;description&quot; : &quot;The project path that was removed&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;success&quot; : {
+        &quot;description&quot; : &quot;Whether the removal operation was successful&quot;,
+        &quot;type&quot; : &quot;boolean&quot;
+      }
+    },
+    &quot;required&quot; : [
+      &quot;removedPath&quot;,
+      &quot;success&quot;,
+      &quot;message&quot;
+    ],
+    &quot;type&quot; : &quot;object&quot;
+  }
+}</pre>
+</details>
+</div>
+</article>
+<article class="tool" id="tool-XcodeRead" data-search="xcoderead xcodeプロジェクトの構成内にあるファイルの内容を読み取ります。行番号付きのcat -n形式で内容を返します。大きなファイルに対しては、オプションのoffsetとlimitパラメータを使って、デフォルトで最大600行まで読み取れます。出力はjsonエンコードされているため、バックスラッシュ、引用符、改行はエスケープされた形で表示されます(\\, \&quot;, \n)。ファイルの内容を解釈する際は、この点を考慮してください。">
+<h3 class="tool-heading">
+<a class="tool-name" href="#tool-XcodeRead">XcodeRead</a>
+<span class="tool-summary">Xcodeプロジェクトの構成内にあるファイルの内容を読み取ります。行番号付きのcat -n形式で内容を返します。大きなファイルに対しては、オプションのoffsetとlimitパラメータを使って、デフォルトで最大600行まで読み取れます。出力はJSONエンコードされているため、バックスラッシュ、引用符、改行はエスケープされた形で表示されます(\\, \&quot;, \n)。ファイルの内容を解釈する際は、この点を考慮してください。</span>
+</h3>
+<div class="body">
+<div class="desc">Xcodeプロジェクトの構成内にあるファイルの内容を読み取ります。行番号付きのcat -n形式で内容を返します。大きなファイルに対しては、オプションのoffsetとlimitパラメータを使って、デフォルトで最大600行まで読み取れます。出力はJSONエンコードされているため、バックスラッシュ、引用符、改行はエスケープされた形で表示されます(\\, \&quot;, \n)。ファイルの内容を解釈する際は、この点を考慮してください。</div>
+<h4>入力</h4>
+<table>
+<thead><tr><th>名前</th><th>型</th><th>必須</th><th>説明</th></tr></thead>
+<tbody>
+<tr>
+<td class="name" style="padding-left: 12px"><code>filePath</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">Xcodeプロジェクトの構成内にあるファイルへのパス(例: 'ProjectName/Sources/MyFile.swift')</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>tabIdentifier</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">ワークスペースタブの識別子</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>limit</code></td>
+<td class="type"><code>integer</code></td>
+<td class="required"></td>
+<td class="desc-cell">読み取る行数(ファイルが大きすぎて一度に読み取れない場合にのみ指定)</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>offset</code></td>
+<td class="type"><code>integer</code></td>
+<td class="required"></td>
+<td class="desc-cell">読み取りを開始する行番号(ファイルが大きすぎて一度に読み取れない場合にのみ指定)</td>
+</tr>
+</tbody>
+</table>
+<h4>出力</h4>
+<table>
+<thead><tr><th>名前</th><th>型</th><th>必須</th><th>説明</th></tr></thead>
+<tbody>
+<tr>
+<td class="name" style="padding-left: 12px"><code>content</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">行番号付きで整形されたファイルの内容(cat -n形式)</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>filePath</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">読み取られたプロジェクトパス</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>fileSize</code></td>
+<td class="type"><code>integer</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">ファイルのサイズ(バイト単位)</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>linesRead</code></td>
+<td class="type"><code>integer</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">実際に読み取られた行数</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>startLine</code></td>
+<td class="type"><code>integer</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">読み取りを開始した行番号</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>totalLines</code></td>
+<td class="type"><code>integer</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">ファイル内の総行数</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>message</code></td>
+<td class="type"><code>string</code></td>
+<td class="required"></td>
+<td class="desc-cell">この操作についての任意のメッセージ</td>
+</tr>
+</tbody>
+</table>
+<details class="raw">
+<summary>生のJSON</summary>
+<pre>{
+  &quot;description&quot; : &quot;Reads the contents of a file within the Xcode project organization. Returns content in cat -n format with line numbers. Supports reading up to 600 lines by default with optional offset and limit parameters for large files. Output is JSON-encoded e.g. backslashes, quotes, and newlines appear escaped (\\\\, \\\&quot;, \\n). Account for this when interpreting file content.&quot;,
+  &quot;inputSchema&quot; : {
+    &quot;properties&quot; : {
+      &quot;filePath&quot; : {
+        &quot;description&quot; : &quot;The path to the file within the Xcode project organization (e.g., 'ProjectName/Sources/MyFile.swift')&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;limit&quot; : {
+        &quot;description&quot; : &quot;The number of lines to read (only provide if the file is too large to read at once)&quot;,
+        &quot;type&quot; : &quot;integer&quot;
+      },
+      &quot;offset&quot; : {
+        &quot;description&quot; : &quot;The line number to start reading from (only provide if the file is too large to read at once)&quot;,
+        &quot;type&quot; : &quot;integer&quot;
+      },
+      &quot;tabIdentifier&quot; : {
+        &quot;description&quot; : &quot;The workspace tab identifier&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      }
+    },
+    &quot;required&quot; : [
+      &quot;tabIdentifier&quot;,
+      &quot;filePath&quot;
+    ],
+    &quot;type&quot; : &quot;object&quot;
+  },
+  &quot;name&quot; : &quot;XcodeRead&quot;,
+  &quot;outputSchema&quot; : {
+    &quot;properties&quot; : {
+      &quot;content&quot; : {
+        &quot;description&quot; : &quot;The file contents formatted with line numbers (cat -n style)&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;filePath&quot; : {
+        &quot;description&quot; : &quot;The project path that was read&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;fileSize&quot; : {
+        &quot;description&quot; : &quot;Size of the file in bytes&quot;,
+        &quot;type&quot; : &quot;integer&quot;
+      },
+      &quot;linesRead&quot; : {
+        &quot;description&quot; : &quot;Number of lines actually read&quot;,
+        &quot;type&quot; : &quot;integer&quot;
+      },
+      &quot;message&quot; : {
+        &quot;description&quot; : &quot;Optional message about the operation&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;startLine&quot; : {
+        &quot;description&quot; : &quot;The line number where reading started&quot;,
+        &quot;type&quot; : &quot;integer&quot;
+      },
+      &quot;totalLines&quot; : {
+        &quot;description&quot; : &quot;Total number of lines in the file&quot;,
+        &quot;type&quot; : &quot;integer&quot;
+      }
+    },
+    &quot;required&quot; : [
+      &quot;content&quot;,
+      &quot;filePath&quot;,
+      &quot;totalLines&quot;,
+      &quot;linesRead&quot;,
+      &quot;startLine&quot;,
+      &quot;fileSize&quot;
+    ],
+    &quot;type&quot; : &quot;object&quot;
+  }
+}</pre>
+</details>
+</div>
+</article>
+<article class="tool" id="tool-XcodeUpdate" data-search="xcodeupdate テキストの内容を置き換えることで、xcodeプロジェクト内のファイルを編集します。ファイルシステムのパスではなく、xcodeプロジェクト構造上のパスに対して動作します。重要: filepath、oldstring、newstringパラメータが欠けている場合、このツールは失敗します。入力するoldstringとnewstringはリテラル文字を使用します。例えばxcodereadが \\d と表示した場合、それに一致させるにはパラメータには \d を使用してください。">
+<h3 class="tool-heading">
+<a class="tool-name" href="#tool-XcodeUpdate">XcodeUpdate</a>
+<span class="tool-summary">テキストの内容を置き換えることで、Xcodeプロジェクト内のファイルを編集します。ファイルシステムのパスではなく、Xcodeプロジェクト構造上のパスに対して動作します。重要: filePath、oldString、newStringパラメータが欠けている場合、このツールは失敗します。入力するoldStringとnewStringはリテラル文字を使用します。例えばXcodeReadが \\d と表示した場合、それに一致させるにはパラメータには \d を使用してください。</span>
+</h3>
+<div class="body">
+<div class="desc">テキストの内容を置き換えることで、Xcodeプロジェクト内のファイルを編集します。ファイルシステムのパスではなく、Xcodeプロジェクト構造上のパスに対して動作します。重要: filePath、oldString、newStringパラメータが欠けている場合、このツールは失敗します。入力するoldStringとnewStringはリテラル文字を使用します。例えばXcodeReadが \\d と表示した場合、それに一致させるにはパラメータには \d を使用してください。</div>
+<h4>入力</h4>
+<table>
+<thead><tr><th>名前</th><th>型</th><th>必須</th><th>説明</th></tr></thead>
+<tbody>
+<tr>
+<td class="name" style="padding-left: 12px"><code>filePath</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">必須: Xcodeプロジェクトの構成内にある、変更対象ファイルへのパス(例: 'ProjectName/Sources/MyFile.swift')</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>newString</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">必須: 置き換え後のテキスト。oldStringとは異なる値である必要があります</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>oldString</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">必須: 置き換え対象のテキスト</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>tabIdentifier</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">ワークスペースタブの識別子</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>replaceAll</code></td>
+<td class="type"><code>boolean</code></td>
+<td class="required"></td>
+<td class="desc-cell">oldStringのすべての出現箇所を置き換える(デフォルトはfalse)</td>
+</tr>
+</tbody>
+</table>
+<h4>出力</h4>
+<table>
+<thead><tr><th>名前</th><th>型</th><th>必須</th><th>説明</th></tr></thead>
+<tbody>
+<tr>
+<td class="name" style="padding-left: 12px"><code>editsApplied</code></td>
+<td class="type"><code>integer</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">成功したテキスト置換の件数</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>filePath</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">編集されたファイルのパス</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>modifiedContentLength</code></td>
+<td class="type"><code>integer</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">編集後のファイル内容の長さ</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>originalContentLength</code></td>
+<td class="type"><code>integer</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">編集前のファイル内容の長さ</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>success</code></td>
+<td class="type"><code>boolean</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">編集操作が正常に完了したかどうか</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>message</code></td>
+<td class="type"><code>string</code></td>
+<td class="required"></td>
+<td class="desc-cell">編集結果についての追加情報を含む、任意のメッセージ</td>
+</tr>
+</tbody>
+</table>
+<details class="raw">
+<summary>生のJSON</summary>
+<pre>{
+  &quot;description&quot; : &quot;Edits files in the Xcode project by replacing text content. Works on Xcode project structure paths, not filesystem paths. IMPORTANT: The tool will fail if filePath, oldString, or newString parameters are missing. Input oldString and newString use literal characters e.g. if XcodeRead shows \\\\d, use \\d in parameters to match it.&quot;,
+  &quot;inputSchema&quot; : {
+    &quot;properties&quot; : {
+      &quot;filePath&quot; : {
+        &quot;description&quot; : &quot;REQUIRED: The path to the file to modify within the Xcode project organization (e.g., 'ProjectName/Sources/MyFile.swift')&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;newString&quot; : {
+        &quot;description&quot; : &quot;REQUIRED: The text to replace it with, must be different from oldString&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;oldString&quot; : {
+        &quot;description&quot; : &quot;REQUIRED: The text to replace&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;replaceAll&quot; : {
+        &quot;description&quot; : &quot;Replace all occurrences of oldString (default false)&quot;,
+        &quot;type&quot; : &quot;boolean&quot;
+      },
+      &quot;tabIdentifier&quot; : {
+        &quot;description&quot; : &quot;The workspace tab identifier&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      }
+    },
+    &quot;required&quot; : [
+      &quot;tabIdentifier&quot;,
+      &quot;filePath&quot;,
+      &quot;oldString&quot;,
+      &quot;newString&quot;
+    ],
+    &quot;type&quot; : &quot;object&quot;
+  },
+  &quot;name&quot; : &quot;XcodeUpdate&quot;,
+  &quot;outputSchema&quot; : {
+    &quot;properties&quot; : {
+      &quot;editsApplied&quot; : {
+        &quot;description&quot; : &quot;Number of successful text replacements made&quot;,
+        &quot;type&quot; : &quot;integer&quot;
+      },
+      &quot;filePath&quot; : {
+        &quot;description&quot; : &quot;The path of the file that was edited&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;message&quot; : {
+        &quot;description&quot; : &quot;Optional message with additional information about the edit results&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;modifiedContentLength&quot; : {
+        &quot;description&quot; : &quot;Length of the file content after editing&quot;,
+        &quot;type&quot; : &quot;integer&quot;
+      },
+      &quot;originalContentLength&quot; : {
+        &quot;description&quot; : &quot;Length of the file content before editing&quot;,
+        &quot;type&quot; : &quot;integer&quot;
+      },
+      &quot;success&quot; : {
+        &quot;description&quot; : &quot;Whether the edit operation completed successfully&quot;,
+        &quot;type&quot; : &quot;boolean&quot;
+      }
+    },
+    &quot;required&quot; : [
+      &quot;filePath&quot;,
+      &quot;editsApplied&quot;,
+      &quot;success&quot;,
+      &quot;originalContentLength&quot;,
+      &quot;modifiedContentLength&quot;
+    ],
+    &quot;type&quot; : &quot;object&quot;
+  }
+}</pre>
+</details>
+</div>
+</article>
+<article class="tool" id="tool-XcodeWrite" data-search="xcodewrite xcodeプロジェクト内に、指定した内容でファイルを新規作成または上書きします。ファイルシステムのパスではなく、xcodeプロジェクト構造上のパスに対して動作します。新規ファイルは自動的にプロジェクト構造に追加されます。filepathとcontentの両パラメータが必須です。入力するcontentはリテラル文字を使用します。例えばxcodereadが \\d と表示した場合、それを書き込むにはcontentパラメータには \d を使用してください。">
+<h3 class="tool-heading">
+<a class="tool-name" href="#tool-XcodeWrite">XcodeWrite</a>
+<span class="tool-summary">Xcodeプロジェクト内に、指定した内容でファイルを新規作成または上書きします。ファイルシステムのパスではなく、Xcodeプロジェクト構造上のパスに対して動作します。新規ファイルは自動的にプロジェクト構造に追加されます。filePathとcontentの両パラメータが必須です。入力するcontentはリテラル文字を使用します。例えばXcodeReadが \\d と表示した場合、それを書き込むにはcontentパラメータには \d を使用してください。</span>
+</h3>
+<div class="body">
+<div class="desc">Xcodeプロジェクト内に、指定した内容でファイルを新規作成または上書きします。ファイルシステムのパスではなく、Xcodeプロジェクト構造上のパスに対して動作します。新規ファイルは自動的にプロジェクト構造に追加されます。filePathとcontentの両パラメータが必須です。入力するcontentはリテラル文字を使用します。例えばXcodeReadが \\d と表示した場合、それを書き込むにはcontentパラメータには \d を使用してください。</div>
+<h4>入力</h4>
+<table>
+<thead><tr><th>名前</th><th>型</th><th>必須</th><th>説明</th></tr></thead>
+<tbody>
+<tr>
+<td class="name" style="padding-left: 12px"><code>content</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">必須: ファイルに書き込む内容</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>filePath</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">必須: Xcodeプロジェクトの構成内にあるファイルへのパス(例: 'ProjectName/Sources/MyFile.swift')</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>tabIdentifier</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">ワークスペースタブの識別子(必須)</td>
+</tr>
+</tbody>
+</table>
+<h4>出力</h4>
+<table>
+<thead><tr><th>名前</th><th>型</th><th>必須</th><th>説明</th></tr></thead>
+<tbody>
+<tr>
+<td class="name" style="padding-left: 12px"><code>bytesWritten</code></td>
+<td class="type"><code>integer</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">ファイルに書き込まれたバイト数</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>filePath</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">書き込まれたプロジェクトパス</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>linesWritten</code></td>
+<td class="type"><code>integer</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">ファイルに書き込まれた行数</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>message</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">書き込み操作を説明する結果メッセージ</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>success</code></td>
+<td class="type"><code>boolean</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">ファイルの書き込み操作が成功したかどうか</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>wasExistingFile</code></td>
+<td class="type"><code>boolean</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">書き込み前にファイルが存在していたかどうか</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>absolutePath</code></td>
+<td class="type"><code>string</code></td>
+<td class="required"></td>
+<td class="desc-cell">書き込まれたファイルの、ファイルシステム上の絶対パス</td>
+</tr>
+</tbody>
+</table>
+<details class="raw">
+<summary>生のJSON</summary>
+<pre>{
+  &quot;description&quot; : &quot;Creates or overwrites files with content in the Xcode project. Works on Xcode project structure paths, not filesystem paths. Automatically adds new files to the project structure. Both filePath and content parameters are required. Input content uses literal characters e.g. if XcodeRead shows \\\\d, use \\d in the content parameter to write it.&quot;,
+  &quot;inputSchema&quot; : {
+    &quot;properties&quot; : {
+      &quot;content&quot; : {
+        &quot;description&quot; : &quot;REQUIRED: The content to write to the file&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;filePath&quot; : {
+        &quot;description&quot; : &quot;REQUIRED: The path to the file within the Xcode project organization (e.g., 'ProjectName/Sources/MyFile.swift')&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;tabIdentifier&quot; : {
+        &quot;description&quot; : &quot;The workspace tab identifier (required)&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      }
+    },
+    &quot;required&quot; : [
+      &quot;tabIdentifier&quot;,
+      &quot;filePath&quot;,
+      &quot;content&quot;
+    ],
+    &quot;type&quot; : &quot;object&quot;
+  },
+  &quot;name&quot; : &quot;XcodeWrite&quot;,
+  &quot;outputSchema&quot; : {
+    &quot;properties&quot; : {
+      &quot;absolutePath&quot; : {
+        &quot;description&quot; : &quot;The absolute file system path of the written file&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;bytesWritten&quot; : {
+        &quot;description&quot; : &quot;Number of bytes written to the file&quot;,
+        &quot;type&quot; : &quot;integer&quot;
+      },
+      &quot;filePath&quot; : {
+        &quot;description&quot; : &quot;The project path that was written&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;linesWritten&quot; : {
+        &quot;description&quot; : &quot;Number of lines written to the file&quot;,
+        &quot;type&quot; : &quot;integer&quot;
+      },
+      &quot;message&quot; : {
+        &quot;description&quot; : &quot;Result message describing the write operation&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;success&quot; : {
+        &quot;description&quot; : &quot;Whether the file write operation succeeded&quot;,
+        &quot;type&quot; : &quot;boolean&quot;
+      },
+      &quot;wasExistingFile&quot; : {
+        &quot;description&quot; : &quot;Whether the file existed before writing&quot;,
+        &quot;type&quot; : &quot;boolean&quot;
+      }
+    },
+    &quot;required&quot; : [
+      &quot;success&quot;,
+      &quot;filePath&quot;,
+      &quot;bytesWritten&quot;,
+      &quot;linesWritten&quot;,
+      &quot;message&quot;,
+      &quot;wasExistingFile&quot;
+    ],
+    &quot;type&quot; : &quot;object&quot;
+  }
+}</pre>
+</details>
+</div>
+</article>
+</details>
+<details class="category" data-category="Build / Run" open>
+<summary><span class="category-name">ビルド / 実行</span><span class="badge">2</span></summary>
+<article class="tool" id="tool-BuildProject" data-search="buildproject xcodeプロジェクトをビルドし、ビルドが完了するまで待機します。">
+<h3 class="tool-heading">
+<a class="tool-name" href="#tool-BuildProject">BuildProject</a>
+<span class="tool-summary">Xcodeプロジェクトをビルドし、ビルドが完了するまで待機します。</span>
+</h3>
+<div class="body">
+<div class="desc">Xcodeプロジェクトをビルドし、ビルドが完了するまで待機します。</div>
+<h4>入力</h4>
+<table>
+<thead><tr><th>名前</th><th>型</th><th>必須</th><th>説明</th></tr></thead>
+<tbody>
+<tr>
+<td class="name" style="padding-left: 12px"><code>tabIdentifier</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">ワークスペースタブの識別子</td>
+</tr>
+</tbody>
+</table>
+<h4>出力</h4>
+<table>
+<thead><tr><th>名前</th><th>型</th><th>必須</th><th>説明</th></tr></thead>
+<tbody>
+<tr>
+<td class="name" style="padding-left: 12px"><code>buildResult</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">ビルド操作の結果を示すメッセージ</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>errors</code></td>
+<td class="type"><code>array&lt;object&gt;</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">ビルドエラーの一覧</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>classification</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">エラーの種類(error、warningなど)</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>message</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">エラーメッセージ</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>filePath</code></td>
+<td class="type"><code>string</code></td>
+<td class="required"></td>
+<td class="desc-cell">エラーが発生したファイルパス</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>lineNumber</code></td>
+<td class="type"><code>integer</code></td>
+<td class="required"></td>
+<td class="desc-cell">エラーが発生した行番号</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>fullLogPath</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">完全なコマンドラインとビルドタスクからの出力を含む、テキスト形式のログ全体へのパス</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>elapsedTime</code></td>
+<td class="type"><code>number</code></td>
+<td class="required"></td>
+<td class="desc-cell">ビルドの完了にかかった時間(秒)</td>
+</tr>
+</tbody>
+</table>
+<details class="raw">
+<summary>生のJSON</summary>
+<pre>{
+  &quot;description&quot; : &quot;Builds an Xcode project and waits until the build completes.&quot;,
+  &quot;inputSchema&quot; : {
+    &quot;properties&quot; : {
+      &quot;tabIdentifier&quot; : {
+        &quot;description&quot; : &quot;The workspace tab identifier&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      }
+    },
+    &quot;required&quot; : [
+      &quot;tabIdentifier&quot;
+    ],
+    &quot;type&quot; : &quot;object&quot;
+  },
+  &quot;name&quot; : &quot;BuildProject&quot;,
+  &quot;outputSchema&quot; : {
+    &quot;properties&quot; : {
+      &quot;buildResult&quot; : {
+        &quot;description&quot; : &quot;The message indicating the result of the build operation&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;elapsedTime&quot; : {
+        &quot;description&quot; : &quot;The time it took to finish the build, in seconds&quot;,
+        &quot;type&quot; : &quot;number&quot;
+      },
+      &quot;errors&quot; : {
+        &quot;description&quot; : &quot;List of build errors&quot;,
+        &quot;items&quot; : {
+          &quot;properties&quot; : {
+            &quot;classification&quot; : {
+              &quot;description&quot; : &quot;The type of error (error, warning, etc.)&quot;,
+              &quot;type&quot; : &quot;string&quot;
+            },
+            &quot;filePath&quot; : {
+              &quot;description&quot; : &quot;The file path where the error occurred&quot;,
+              &quot;type&quot; : &quot;string&quot;
+            },
+            &quot;lineNumber&quot; : {
+              &quot;description&quot; : &quot;The line number where the error occurred&quot;,
+              &quot;type&quot; : &quot;integer&quot;
+            },
+            &quot;message&quot; : {
+              &quot;description&quot; : &quot;The error message&quot;,
+              &quot;type&quot; : &quot;string&quot;
+            }
+          },
+          &quot;required&quot; : [
+            &quot;classification&quot;,
+            &quot;message&quot;
+          ],
+          &quot;type&quot; : &quot;object&quot;
+        },
+        &quot;type&quot; : &quot;array&quot;
+      },
+      &quot;fullLogPath&quot; : {
+        &quot;description&quot; : &quot;Path of the full log in textual format, containing the complete command lines and any output from the build tasks&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      }
+    },
+    &quot;required&quot; : [
+      &quot;buildResult&quot;,
+      &quot;errors&quot;,
+      &quot;fullLogPath&quot;
+    ],
+    &quot;type&quot; : &quot;object&quot;
+  }
+}</pre>
+</details>
+</div>
+</article>
+<article class="tool" id="tool-GetBuildLog" data-search="getbuildlog 現在進行中、または直近に完了したビルドのログを取得します。各エントリが表すビルドタスクから発生した問題の重大度を指定することで、含めるビルドログエントリを選択できます。メッセージの正規表現パターンやファイルのglobパターンによる絞り込みも可能です。レスポンスには、ビルドが現在も進行中かどうかも示されます。">
+<h3 class="tool-heading">
+<a class="tool-name" href="#tool-GetBuildLog">GetBuildLog</a>
+<span class="tool-summary">現在進行中、または直近に完了したビルドのログを取得します。各エントリが表すビルドタスクから発生した問題の重大度を指定することで、含めるビルドログエントリを選択できます。メッセージの正規表現パターンやファイルのglobパターンによる絞り込みも可能です。レスポンスには、ビルドが現在も進行中かどうかも示されます。</span>
+</h3>
+<div class="body">
+<div class="desc">現在進行中、または直近に完了したビルドのログを取得します。各エントリが表すビルドタスクから発生した問題の重大度を指定することで、含めるビルドログエントリを選択できます。メッセージの正規表現パターンやファイルのglobパターンによる絞り込みも可能です。レスポンスには、ビルドが現在も進行中かどうかも示されます。</div>
+<h4>入力</h4>
+<table>
+<thead><tr><th>名前</th><th>型</th><th>必須</th><th>説明</th></tr></thead>
+<tbody>
+<tr>
+<td class="name" style="padding-left: 12px"><code>tabIdentifier</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">ワークスペースタブの識別子</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>glob</code></td>
+<td class="type"><code>string</code></td>
+<td class="required"></td>
+<td class="desc-cell">返されるビルドログエントリを絞り込むためのglob。発生した問題の 'path' フィールド、およびビルドタスクの場所に対してマッチングされます。</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>pattern</code></td>
+<td class="type"><code>string</code></td>
+<td class="required"></td>
+<td class="desc-cell">返されるビルドログエントリを絞り込むための正規表現。発生した問題の 'message' フィールド、およびビルドタスクのタスク説明、コマンドライン、コンソール出力に対してマッチングされます。</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>severity</code></td>
+<td class="type"><code>string</code></td>
+<td class="required"></td>
+<td class="desc-cell">指定した重大度以上の問題を発生させたビルドログエントリのみに、出力を制限します。重大度の高い順に有効な値は 'error'、'warning'、'remark' です。デフォルトは 'error' です。<div class="enum">remark / warning / error</div></td>
+</tr>
+</tbody>
+</table>
+<h4>出力</h4>
+<table>
+<thead><tr><th>名前</th><th>型</th><th>必須</th><th>説明</th></tr></thead>
+<tbody>
+<tr>
+<td class="name" style="padding-left: 12px"><code>buildIsRunning</code></td>
+<td class="type"><code>boolean</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">ビルドがまだ実行中かどうかを示します。</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>buildLogEntries</code></td>
+<td class="type"><code>array&lt;object&gt;</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">問題を発生させたビルドコマンドを説明する、ビルドログエントリ</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>emittedIssues</code></td>
+<td class="type"><code>array&lt;object&gt;</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">このログエントリが表すビルドタスクから発生した問題</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 48px"><code>line</code></td>
+<td class="type"><code>integer</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">問題が検出された行番号(判明している場合)</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 48px"><code>message</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">問題を説明するメッセージ</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 48px"><code>severity</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">問題の重大度(error、warning、remark)</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 48px"><code>path</code></td>
+<td class="type"><code>string</code></td>
+<td class="required"></td>
+<td class="desc-cell">問題が検出されたファイルパス(存在する場合)</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>buildTask</code></td>
+<td class="type"><code>string</code></td>
+<td class="required"></td>
+<td class="desc-cell">このログエントリが表すビルドタスク</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>buildResult</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">ビルド操作の結果を示すメッセージ</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>fullLogPath</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">完全なコマンドラインとビルドタスクからの出力を含む、テキスト形式のログ全体へのパス</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>totalFound</code></td>
+<td class="type"><code>integer</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">切り詰める前のビルドログエントリの総数</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>truncated</code></td>
+<td class="type"><code>boolean</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">100件の問題を超えたために結果が切り詰められたかどうか</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>message</code></td>
+<td class="type"><code>string</code></td>
+<td class="required"></td>
+<td class="desc-cell">検索結果についての追加情報を含む、任意のメッセージ</td>
+</tr>
+</tbody>
+</table>
+<details class="raw">
+<summary>生のJSON</summary>
+<pre>{
+  &quot;description&quot; : &quot;Gets the log of the current or most recently finished build. You can choose which build log entries to include by specifying the severity of any issues emitted by the build task represented by the entry. You can also filter by message regex pattern or file glob pattern. The response also indicates whether the build is currently in progress.&quot;,
+  &quot;inputSchema&quot; : {
+    &quot;properties&quot; : {
+      &quot;glob&quot; : {
+        &quot;description&quot; : &quot;Glob to filter the returned build log entries. Will match against the 'path' field of any emitted issues, as well as against the location of any build task.&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;pattern&quot; : {
+        &quot;description&quot; : &quot;Regex to filter the returned build log entries. Will match against the 'message' field of any emitted issues, as well as the task description, command line, and console output of any build tasks.&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;severity&quot; : {
+        &quot;description&quot; : &quot;Limit the output of build log entries to those that emitted issues of the specified severity or higher. Valid values in order of decreasing severity are 'error', 'warning', 'remark'. Defaults to 'error'.&quot;,
+        &quot;enum&quot; : [
+          &quot;remark&quot;,
+          &quot;warning&quot;,
+          &quot;error&quot;
+        ],
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;tabIdentifier&quot; : {
+        &quot;description&quot; : &quot;The workspace tab identifier&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      }
+    },
+    &quot;required&quot; : [
+      &quot;tabIdentifier&quot;
+    ],
+    &quot;type&quot; : &quot;object&quot;
+  },
+  &quot;name&quot; : &quot;GetBuildLog&quot;,
+  &quot;outputSchema&quot; : {
+    &quot;properties&quot; : {
+      &quot;buildIsRunning&quot; : {
+        &quot;description&quot; : &quot;Indicates whether the build is still running.&quot;,
+        &quot;type&quot; : &quot;boolean&quot;
+      },
+      &quot;buildLogEntries&quot; : {
+        &quot;description&quot; : &quot;The build log entries describing build commands that emitted issues&quot;,
+        &quot;items&quot; : {
+          &quot;properties&quot; : {
+            &quot;buildTask&quot; : {
+              &quot;description&quot; : &quot;The build task represented by the log entry&quot;,
+              &quot;type&quot; : &quot;string&quot;
+            },
+            &quot;emittedIssues&quot; : {
+              &quot;description&quot; : &quot;Any issues emitted by the build task represented by the log entry&quot;,
+              &quot;items&quot; : {
+                &quot;properties&quot; : {
+                  &quot;line&quot; : {
+                    &quot;description&quot; : &quot;The line number where the issue was detected, if known&quot;,
+                    &quot;type&quot; : &quot;integer&quot;
+                  },
+                  &quot;message&quot; : {
+                    &quot;description&quot; : &quot;The message describing the issue&quot;,
+                    &quot;type&quot; : &quot;string&quot;
+                  },
+                  &quot;path&quot; : {
+                    &quot;description&quot; : &quot;The file path where the issue was detected, if any&quot;,
+                    &quot;type&quot; : &quot;string&quot;
+                  },
+                  &quot;severity&quot; : {
+                    &quot;description&quot; : &quot;The severity of issue (error, warning, remark)&quot;,
+                    &quot;type&quot; : &quot;string&quot;
+                  }
+                },
+                &quot;required&quot; : [
+                  &quot;line&quot;,
+                  &quot;severity&quot;,
+                  &quot;message&quot;
+                ],
+                &quot;type&quot; : &quot;object&quot;
+              },
+              &quot;type&quot; : &quot;array&quot;
+            }
+          },
+          &quot;required&quot; : [
+            &quot;emittedIssues&quot;
+          ],
+          &quot;type&quot; : &quot;object&quot;
+        },
+        &quot;type&quot; : &quot;array&quot;
+      },
+      &quot;buildResult&quot; : {
+        &quot;description&quot; : &quot;The message indicating the result of the build operation&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;fullLogPath&quot; : {
+        &quot;description&quot; : &quot;Path of the full log in textual format, containing the complete command lines and any output from the build tasks&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;message&quot; : {
+        &quot;description&quot; : &quot;Optional message with additional information about the search results&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;totalFound&quot; : {
+        &quot;description&quot; : &quot;Total number of build log entries before truncation&quot;,
+        &quot;type&quot; : &quot;integer&quot;
+      },
+      &quot;truncated&quot; : {
+        &quot;description&quot; : &quot;Whether results were truncated due to exceeding 100 issues&quot;,
+        &quot;type&quot; : &quot;boolean&quot;
+      }
+    },
+    &quot;required&quot; : [
+      &quot;buildResult&quot;,
+      &quot;buildLogEntries&quot;,
+      &quot;buildIsRunning&quot;,
+      &quot;truncated&quot;,
+      &quot;totalFound&quot;,
+      &quot;fullLogPath&quot;
+    ],
+    &quot;type&quot; : &quot;object&quot;
+  }
+}</pre>
+</details>
+</div>
+</article>
+</details>
+<details class="category" data-category="Testing" open>
+<summary><span class="category-name">テスト</span><span class="badge">3</span></summary>
+<article class="tool" id="tool-GetTestList" data-search="gettestlist アクティブなスキームのアクティブなテストプランから、利用可能なすべてのテストを取得します。結果は100件までに制限されます。完全なリストはgrepしやすい形式でfulltestlistpathに書き出されます。test_target、test_identifier、test_file_pathなどのキーを使ってgrepすることで、特定のテストを見つけられます。">
+<h3 class="tool-heading">
+<a class="tool-name" href="#tool-GetTestList">GetTestList</a>
+<span class="tool-summary">アクティブなスキームのアクティブなテストプランから、利用可能なすべてのテストを取得します。結果は100件までに制限されます。完全なリストはgrepしやすい形式でfullTestListPathに書き出されます。TEST_TARGET、TEST_IDENTIFIER、TEST_FILE_PATHなどのキーを使ってgrepすることで、特定のテストを見つけられます。</span>
+</h3>
+<div class="body">
+<div class="desc">アクティブなスキームのアクティブなテストプランから、利用可能なすべてのテストを取得します。結果は100件までに制限されます。完全なリストはgrepしやすい形式でfullTestListPathに書き出されます。TEST_TARGET、TEST_IDENTIFIER、TEST_FILE_PATHなどのキーを使ってgrepすることで、特定のテストを見つけられます。</div>
+<h4>入力</h4>
+<table>
+<thead><tr><th>名前</th><th>型</th><th>必須</th><th>説明</th></tr></thead>
+<tbody>
+<tr>
+<td class="name" style="padding-left: 12px"><code>tabIdentifier</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">ワークスペースタブの識別子</td>
+</tr>
+</tbody>
+</table>
+<h4>出力</h4>
+<table>
+<thead><tr><th>名前</th><th>型</th><th>必須</th><th>説明</th></tr></thead>
+<tbody>
+<tr>
+<td class="name" style="padding-left: 12px"><code>counts</code></td>
+<td class="type"><code>object</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">集計されたテスト件数</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>disabled</code></td>
+<td class="type"><code>integer</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">無効化されたテストの件数</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>enabled</code></td>
+<td class="type"><code>integer</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">有効なテストの件数</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>total</code></td>
+<td class="type"><code>integer</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">テストの総数</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>fullTestListPath</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">完全なテスト一覧を含むファイルへのパス</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>schemeName</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">アクティブなスキーム名</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>summary</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">人間が読める形式のテスト一覧の概要</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>tests</code></td>
+<td class="type"><code>array&lt;object&gt;</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">100件までに制限されたテストの一覧</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>displayName</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">人間が読める形式のテスト名</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>identifier</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">XCTestIdentifier形式のテスト識別子</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>isEnabled</code></td>
+<td class="type"><code>boolean</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">そのテストがテストプランで有効になっているかどうか</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>targetName</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">テストターゲット名</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>filePath</code></td>
+<td class="type"><code>string</code></td>
+<td class="required"></td>
+<td class="desc-cell">ソースファイルのパス</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>lineNumber</code></td>
+<td class="type"><code>integer</code></td>
+<td class="required"></td>
+<td class="desc-cell">ソースファイル内の行番号</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>tags</code></td>
+<td class="type"><code>array&lt;string&gt;</code></td>
+<td class="required"></td>
+<td class="desc-cell">Swift Testingのタグ</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>totalTests</code></td>
+<td class="type"><code>integer</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">切り詰める前のテストの総数</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>truncated</code></td>
+<td class="type"><code>boolean</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">テスト一覧が切り詰められたかどうか</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>activeTestPlanName</code></td>
+<td class="type"><code>string</code></td>
+<td class="required"></td>
+<td class="desc-cell">アクティブなテストプラン名</td>
+</tr>
+</tbody>
+</table>
+<details class="raw">
+<summary>生のJSON</summary>
+<pre>{
+  &quot;description&quot; : &quot;Gets all available tests from the active scheme's active test plan. Results are limited to 100 tests. The complete list is written to fullTestListPath in grep-friendly format. Use grep with keys like TEST_TARGET, TEST_IDENTIFIER, or TEST_FILE_PATH to find specific tests.&quot;,
+  &quot;inputSchema&quot; : {
+    &quot;properties&quot; : {
+      &quot;tabIdentifier&quot; : {
+        &quot;description&quot; : &quot;The workspace tab identifier&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      }
+    },
+    &quot;required&quot; : [
+      &quot;tabIdentifier&quot;
+    ],
+    &quot;type&quot; : &quot;object&quot;
+  },
+  &quot;name&quot; : &quot;GetTestList&quot;,
+  &quot;outputSchema&quot; : {
+    &quot;properties&quot; : {
+      &quot;activeTestPlanName&quot; : {
+        &quot;description&quot; : &quot;The active test plan name&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;counts&quot; : {
+        &quot;description&quot; : &quot;Aggregated test counts&quot;,
+        &quot;properties&quot; : {
+          &quot;disabled&quot; : {
+            &quot;description&quot; : &quot;Number of disabled tests&quot;,
+            &quot;type&quot; : &quot;integer&quot;
+          },
+          &quot;enabled&quot; : {
+            &quot;description&quot; : &quot;Number of enabled tests&quot;,
+            &quot;type&quot; : &quot;integer&quot;
+          },
+          &quot;total&quot; : {
+            &quot;description&quot; : &quot;Total test count&quot;,
+            &quot;type&quot; : &quot;integer&quot;
+          }
+        },
+        &quot;required&quot; : [
+          &quot;total&quot;,
+          &quot;enabled&quot;,
+          &quot;disabled&quot;
+        ],
+        &quot;type&quot; : &quot;object&quot;
+      },
+      &quot;fullTestListPath&quot; : {
+        &quot;description&quot; : &quot;Path to file containing complete test list&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;schemeName&quot; : {
+        &quot;description&quot; : &quot;The active scheme name&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;summary&quot; : {
+        &quot;description&quot; : &quot;Human-readable test list summary&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;tests&quot; : {
+        &quot;description&quot; : &quot;List of tests limited to 100&quot;,
+        &quot;items&quot; : {
+          &quot;properties&quot; : {
+            &quot;displayName&quot; : {
+              &quot;description&quot; : &quot;Human readable test name&quot;,
+              &quot;type&quot; : &quot;string&quot;
+            },
+            &quot;filePath&quot; : {
+              &quot;description&quot; : &quot;Source file path&quot;,
+              &quot;type&quot; : &quot;string&quot;
+            },
+            &quot;identifier&quot; : {
+              &quot;description&quot; : &quot;Test identifier in XCTestIdentifier format&quot;,
+              &quot;type&quot; : &quot;string&quot;
+            },
+            &quot;isEnabled&quot; : {
+              &quot;description&quot; : &quot;Whether the test is enabled in the test plan&quot;,
+              &quot;type&quot; : &quot;boolean&quot;
+            },
+            &quot;lineNumber&quot; : {
+              &quot;description&quot; : &quot;Line number in source file&quot;,
+              &quot;type&quot; : &quot;integer&quot;
+            },
+            &quot;tags&quot; : {
+              &quot;description&quot; : &quot;Swift Testing tags&quot;,
+              &quot;items&quot; : {
+                &quot;type&quot; : &quot;string&quot;
+              },
+              &quot;type&quot; : &quot;array&quot;
+            },
+            &quot;targetName&quot; : {
+              &quot;description&quot; : &quot;The test target name&quot;,
+              &quot;type&quot; : &quot;string&quot;
+            }
+          },
+          &quot;required&quot; : [
+            &quot;targetName&quot;,
+            &quot;identifier&quot;,
+            &quot;displayName&quot;,
+            &quot;isEnabled&quot;
+          ],
+          &quot;type&quot; : &quot;object&quot;
+        },
+        &quot;type&quot; : &quot;array&quot;
+      },
+      &quot;totalTests&quot; : {
+        &quot;description&quot; : &quot;Total number of tests before truncation&quot;,
+        &quot;type&quot; : &quot;integer&quot;
+      },
+      &quot;truncated&quot; : {
+        &quot;description&quot; : &quot;Whether test list was truncated&quot;,
+        &quot;type&quot; : &quot;boolean&quot;
+      }
+    },
+    &quot;required&quot; : [
+      &quot;tests&quot;,
+      &quot;schemeName&quot;,
+      &quot;summary&quot;,
+      &quot;counts&quot;,
+      &quot;truncated&quot;,
+      &quot;totalTests&quot;,
+      &quot;fullTestListPath&quot;
+    ],
+    &quot;type&quot; : &quot;object&quot;
+  }
+}</pre>
+</details>
+</div>
+</article>
+<article class="tool" id="tool-RunAllTests" data-search="runalltests アクティブなスキームのアクティブなテストプランから、すべてのテストを実行します">
+<h3 class="tool-heading">
+<a class="tool-name" href="#tool-RunAllTests">RunAllTests</a>
+<span class="tool-summary">アクティブなスキームのアクティブなテストプランから、すべてのテストを実行します</span>
+</h3>
+<div class="body">
+<div class="desc">アクティブなスキームのアクティブなテストプランから、すべてのテストを実行します</div>
+<h4>入力</h4>
+<table>
+<thead><tr><th>名前</th><th>型</th><th>必須</th><th>説明</th></tr></thead>
+<tbody>
+<tr>
+<td class="name" style="padding-left: 12px"><code>tabIdentifier</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">ワークスペースタブの識別子</td>
+</tr>
+</tbody>
+</table>
+<h4>出力</h4>
+<table>
+<thead><tr><th>名前</th><th>型</th><th>必須</th><th>説明</th></tr></thead>
+<tbody>
+<tr>
+<td class="name" style="padding-left: 12px"><code>counts</code></td>
+<td class="type"><code>object</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">テスト実行件数</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>expectedFailures</code></td>
+<td class="type"><code>integer</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">予期された失敗の件数</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>failed</code></td>
+<td class="type"><code>integer</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">失敗したテストの件数</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>notRun</code></td>
+<td class="type"><code>integer</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">実行されなかったテストの件数</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>passed</code></td>
+<td class="type"><code>integer</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">成功したテストの件数</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>skipped</code></td>
+<td class="type"><code>integer</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">スキップされたテストの件数</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>total</code></td>
+<td class="type"><code>integer</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">テストの総数</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>fullSummaryPath</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">すべてのテスト結果と、問題の完全な詳細をテキスト形式で含む、テキストファイルのパス</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>results</code></td>
+<td class="type"><code>array&lt;object&gt;</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">各テストの結果(100件で切り詰め、失敗したものが先頭に表示されます)</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>displayName</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">人間が読める形式のテスト名</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>errorMessages</code></td>
+<td class="type"><code>array&lt;string&gt;</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">エラーメッセージ</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>identifier</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">XCTestIdentifier形式のテスト識別子</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>state</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">実行状態</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>targetName</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">テストターゲット名</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>schemeName</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">アクティブなスキーム名</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>summary</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">テスト実行の概要</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>totalResults</code></td>
+<td class="type"><code>integer</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">切り詰める前のテスト結果の総数</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>truncated</code></td>
+<td class="type"><code>boolean</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">100件の結果を超えたために結果が切り詰められたかどうか</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>activeTestPlanName</code></td>
+<td class="type"><code>string</code></td>
+<td class="required"></td>
+<td class="desc-cell">アクティブなテストプラン名</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>fullConsoleLogsPath</code></td>
+<td class="type"><code>string</code></td>
+<td class="required"></td>
+<td class="desc-cell">テストのビルドおよび実行中に `print` や `NSLog` などによってコンソールに出力されるすべてのログを含む、テキストファイルのパス。</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>message</code></td>
+<td class="type"><code>string</code></td>
+<td class="required"></td>
+<td class="desc-cell">結果が切り詰められたことについての追加情報</td>
+</tr>
+</tbody>
+</table>
+<details class="raw">
+<summary>生のJSON</summary>
+<pre>{
+  &quot;description&quot; : &quot;Runs all tests from the active scheme's active test plan&quot;,
+  &quot;inputSchema&quot; : {
+    &quot;properties&quot; : {
+      &quot;tabIdentifier&quot; : {
+        &quot;description&quot; : &quot;The workspace tab identifier&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      }
+    },
+    &quot;required&quot; : [
+      &quot;tabIdentifier&quot;
+    ],
+    &quot;type&quot; : &quot;object&quot;
+  },
+  &quot;name&quot; : &quot;RunAllTests&quot;,
+  &quot;outputSchema&quot; : {
+    &quot;properties&quot; : {
+      &quot;activeTestPlanName&quot; : {
+        &quot;description&quot; : &quot;Active test plan name&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;counts&quot; : {
+        &quot;description&quot; : &quot;Test execution counts&quot;,
+        &quot;properties&quot; : {
+          &quot;expectedFailures&quot; : {
+            &quot;description&quot; : &quot;Number of expected failures&quot;,
+            &quot;type&quot; : &quot;integer&quot;
+          },
+          &quot;failed&quot; : {
+            &quot;description&quot; : &quot;Number of failed tests&quot;,
+            &quot;type&quot; : &quot;integer&quot;
+          },
+          &quot;notRun&quot; : {
+            &quot;description&quot; : &quot;Number of tests not run&quot;,
+            &quot;type&quot; : &quot;integer&quot;
+          },
+          &quot;passed&quot; : {
+            &quot;description&quot; : &quot;Number of passed tests&quot;,
+            &quot;type&quot; : &quot;integer&quot;
+          },
+          &quot;skipped&quot; : {
+            &quot;description&quot; : &quot;Number of skipped tests&quot;,
+            &quot;type&quot; : &quot;integer&quot;
+          },
+          &quot;total&quot; : {
+            &quot;description&quot; : &quot;Total test count&quot;,
+            &quot;type&quot; : &quot;integer&quot;
+          }
+        },
+        &quot;required&quot; : [
+          &quot;total&quot;,
+          &quot;passed&quot;,
+          &quot;failed&quot;,
+          &quot;skipped&quot;,
+          &quot;expectedFailures&quot;,
+          &quot;notRun&quot;
+        ],
+        &quot;type&quot; : &quot;object&quot;
+      },
+      &quot;fullConsoleLogsPath&quot; : {
+        &quot;description&quot; : &quot;A text file path containing all logs that would be printed in the console from `print`, `NSLog`, etc. during test build and execution.&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;fullSummaryPath&quot; : {
+        &quot;description&quot; : &quot;A text file path containing all test results and complete issue details in textual form&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;message&quot; : {
+        &quot;description&quot; : &quot;Additional information about truncation&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;results&quot; : {
+        &quot;description&quot; : &quot;Results for each test (truncated at 100, failures shown first)&quot;,
+        &quot;items&quot; : {
+          &quot;properties&quot; : {
+            &quot;displayName&quot; : {
+              &quot;description&quot; : &quot;Human-readable test name&quot;,
+              &quot;type&quot; : &quot;string&quot;
+            },
+            &quot;errorMessages&quot; : {
+              &quot;description&quot; : &quot;Error messages&quot;,
+              &quot;items&quot; : {
+                &quot;type&quot; : &quot;string&quot;
+              },
+              &quot;type&quot; : &quot;array&quot;
+            },
+            &quot;identifier&quot; : {
+              &quot;description&quot; : &quot;Test identifier in XCTestIdentifier format&quot;,
+              &quot;type&quot; : &quot;string&quot;
+            },
+            &quot;state&quot; : {
+              &quot;description&quot; : &quot;Execution state&quot;,
+              &quot;type&quot; : &quot;string&quot;
+            },
+            &quot;targetName&quot; : {
+              &quot;description&quot; : &quot;The test target name&quot;,
+              &quot;type&quot; : &quot;string&quot;
+            }
+          },
+          &quot;required&quot; : [
+            &quot;targetName&quot;,
+            &quot;identifier&quot;,
+            &quot;displayName&quot;,
+            &quot;state&quot;,
+            &quot;errorMessages&quot;
+          ],
+          &quot;type&quot; : &quot;object&quot;
+        },
+        &quot;type&quot; : &quot;array&quot;
+      },
+      &quot;schemeName&quot; : {
+        &quot;description&quot; : &quot;Active scheme name&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;summary&quot; : {
+        &quot;description&quot; : &quot;Test execution summary&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;totalResults&quot; : {
+        &quot;description&quot; : &quot;Total number of test results before truncation&quot;,
+        &quot;type&quot; : &quot;integer&quot;
+      },
+      &quot;truncated&quot; : {
+        &quot;description&quot; : &quot;Whether results were truncated due to exceeding 100 results&quot;,
+        &quot;type&quot; : &quot;boolean&quot;
+      }
+    },
+    &quot;required&quot; : [
+      &quot;summary&quot;,
+      &quot;counts&quot;,
+      &quot;results&quot;,
+      &quot;schemeName&quot;,
+      &quot;truncated&quot;,
+      &quot;totalResults&quot;,
+      &quot;fullSummaryPath&quot;
+    ],
+    &quot;type&quot; : &quot;object&quot;
+  }
+}</pre>
+</details>
+</div>
+</article>
+<article class="tool" id="tool-RunSomeTests" data-search="runsometests アクティブなスキームのアクティブなテストプランを使って、指定したテストを実行します">
+<h3 class="tool-heading">
+<a class="tool-name" href="#tool-RunSomeTests">RunSomeTests</a>
+<span class="tool-summary">アクティブなスキームのアクティブなテストプランを使って、指定したテストを実行します</span>
+</h3>
+<div class="body">
+<div class="desc">アクティブなスキームのアクティブなテストプランを使って、指定したテストを実行します</div>
+<h4>入力</h4>
+<table>
+<thead><tr><th>名前</th><th>型</th><th>必須</th><th>説明</th></tr></thead>
+<tbody>
+<tr>
+<td class="name" style="padding-left: 12px"><code>tabIdentifier</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">ワークスペースタブの識別子</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>tests</code></td>
+<td class="type"><code>array&lt;object&gt;</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">実行するテスト指定子の配列。各指定子には 'targetName' と 'testIdentifier' フィールドが含まれます。利用可能なテストとその識別子を調べるにはGetTestListアクションを使用し、TestActionInfoの結果から 'targetName' と 'identifier' フィールドを取り出してTestActionSpecifierオブジェクトを構築してください。</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>targetName</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">テストターゲット名</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>testIdentifier</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">XCTestIdentifier形式のテスト識別子</td>
+</tr>
+</tbody>
+</table>
+<h4>出力</h4>
+<table>
+<thead><tr><th>名前</th><th>型</th><th>必須</th><th>説明</th></tr></thead>
+<tbody>
+<tr>
+<td class="name" style="padding-left: 12px"><code>counts</code></td>
+<td class="type"><code>object</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">テスト実行件数</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>expectedFailures</code></td>
+<td class="type"><code>integer</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">予期された失敗の件数</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>failed</code></td>
+<td class="type"><code>integer</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">失敗したテストの件数</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>notRun</code></td>
+<td class="type"><code>integer</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">実行されなかったテストの件数</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>passed</code></td>
+<td class="type"><code>integer</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">成功したテストの件数</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>skipped</code></td>
+<td class="type"><code>integer</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">スキップされたテストの件数</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>total</code></td>
+<td class="type"><code>integer</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">テストの総数</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>fullSummaryPath</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">すべてのテスト結果と、問題の完全な詳細をテキスト形式で含む、テキストファイルのパス</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>results</code></td>
+<td class="type"><code>array&lt;object&gt;</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">各テストの結果(100件で切り詰め、失敗したものが先頭に表示されます)</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>displayName</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">人間が読める形式のテスト名</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>errorMessages</code></td>
+<td class="type"><code>array&lt;string&gt;</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">エラーメッセージ</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>identifier</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">XCTestIdentifier形式のテスト識別子</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>state</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">実行状態</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>targetName</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">テストターゲット名</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>schemeName</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">アクティブなスキーム名</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>summary</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">テスト実行の概要</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>totalResults</code></td>
+<td class="type"><code>integer</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">切り詰める前のテスト結果の総数</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>truncated</code></td>
+<td class="type"><code>boolean</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">100件の結果を超えたために結果が切り詰められたかどうか</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>activeTestPlanName</code></td>
+<td class="type"><code>string</code></td>
+<td class="required"></td>
+<td class="desc-cell">アクティブなテストプラン名</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>fullConsoleLogsPath</code></td>
+<td class="type"><code>string</code></td>
+<td class="required"></td>
+<td class="desc-cell">テストのビルドおよび実行中に `print` や `NSLog` などによってコンソールに出力されるすべてのログを含む、テキストファイルのパス。</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>message</code></td>
+<td class="type"><code>string</code></td>
+<td class="required"></td>
+<td class="desc-cell">結果が切り詰められたことについての追加情報</td>
+</tr>
+</tbody>
+</table>
+<details class="raw">
+<summary>生のJSON</summary>
+<pre>{
+  &quot;description&quot; : &quot;Runs specific tests using the active scheme's active test plan&quot;,
+  &quot;inputSchema&quot; : {
+    &quot;properties&quot; : {
+      &quot;tabIdentifier&quot; : {
+        &quot;description&quot; : &quot;The workspace tab identifier&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;tests&quot; : {
+        &quot;description&quot; : &quot;Array of test specifiers to run. Each specifier contains 'targetName' and 'testIdentifier' fields. Use GetTestList action to discover available tests and their identifiers, then extract the 'targetName' and 'identifier' fields from the TestActionInfo results to construct TestActionSpecifier objects.&quot;,
+        &quot;items&quot; : {
+          &quot;properties&quot; : {
+            &quot;targetName&quot; : {
+              &quot;description&quot; : &quot;The test target name&quot;,
+              &quot;type&quot; : &quot;string&quot;
+            },
+            &quot;testIdentifier&quot; : {
+              &quot;description&quot; : &quot;Test identifier in XCTestIdentifier format&quot;,
+              &quot;type&quot; : &quot;string&quot;
+            }
+          },
+          &quot;required&quot; : [
+            &quot;targetName&quot;,
+            &quot;testIdentifier&quot;
+          ],
+          &quot;type&quot; : &quot;object&quot;
+        },
+        &quot;type&quot; : &quot;array&quot;
+      }
+    },
+    &quot;required&quot; : [
+      &quot;tabIdentifier&quot;,
+      &quot;tests&quot;
+    ],
+    &quot;type&quot; : &quot;object&quot;
+  },
+  &quot;name&quot; : &quot;RunSomeTests&quot;,
+  &quot;outputSchema&quot; : {
+    &quot;properties&quot; : {
+      &quot;activeTestPlanName&quot; : {
+        &quot;description&quot; : &quot;Active test plan name&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;counts&quot; : {
+        &quot;description&quot; : &quot;Test execution counts&quot;,
+        &quot;properties&quot; : {
+          &quot;expectedFailures&quot; : {
+            &quot;description&quot; : &quot;Number of expected failures&quot;,
+            &quot;type&quot; : &quot;integer&quot;
+          },
+          &quot;failed&quot; : {
+            &quot;description&quot; : &quot;Number of failed tests&quot;,
+            &quot;type&quot; : &quot;integer&quot;
+          },
+          &quot;notRun&quot; : {
+            &quot;description&quot; : &quot;Number of tests not run&quot;,
+            &quot;type&quot; : &quot;integer&quot;
+          },
+          &quot;passed&quot; : {
+            &quot;description&quot; : &quot;Number of passed tests&quot;,
+            &quot;type&quot; : &quot;integer&quot;
+          },
+          &quot;skipped&quot; : {
+            &quot;description&quot; : &quot;Number of skipped tests&quot;,
+            &quot;type&quot; : &quot;integer&quot;
+          },
+          &quot;total&quot; : {
+            &quot;description&quot; : &quot;Total test count&quot;,
+            &quot;type&quot; : &quot;integer&quot;
+          }
+        },
+        &quot;required&quot; : [
+          &quot;total&quot;,
+          &quot;passed&quot;,
+          &quot;failed&quot;,
+          &quot;skipped&quot;,
+          &quot;expectedFailures&quot;,
+          &quot;notRun&quot;
+        ],
+        &quot;type&quot; : &quot;object&quot;
+      },
+      &quot;fullConsoleLogsPath&quot; : {
+        &quot;description&quot; : &quot;A text file path containing all logs that would be printed in the console from `print`, `NSLog`, etc. during test build and execution.&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;fullSummaryPath&quot; : {
+        &quot;description&quot; : &quot;A text file path containing all test results and complete issue details in textual form&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;message&quot; : {
+        &quot;description&quot; : &quot;Additional information about truncation&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;results&quot; : {
+        &quot;description&quot; : &quot;Results for each test (truncated at 100, failures shown first)&quot;,
+        &quot;items&quot; : {
+          &quot;properties&quot; : {
+            &quot;displayName&quot; : {
+              &quot;description&quot; : &quot;Human-readable test name&quot;,
+              &quot;type&quot; : &quot;string&quot;
+            },
+            &quot;errorMessages&quot; : {
+              &quot;description&quot; : &quot;Error messages&quot;,
+              &quot;items&quot; : {
+                &quot;type&quot; : &quot;string&quot;
+              },
+              &quot;type&quot; : &quot;array&quot;
+            },
+            &quot;identifier&quot; : {
+              &quot;description&quot; : &quot;Test identifier in XCTestIdentifier format&quot;,
+              &quot;type&quot; : &quot;string&quot;
+            },
+            &quot;state&quot; : {
+              &quot;description&quot; : &quot;Execution state&quot;,
+              &quot;type&quot; : &quot;string&quot;
+            },
+            &quot;targetName&quot; : {
+              &quot;description&quot; : &quot;The test target name&quot;,
+              &quot;type&quot; : &quot;string&quot;
+            }
+          },
+          &quot;required&quot; : [
+            &quot;targetName&quot;,
+            &quot;identifier&quot;,
+            &quot;displayName&quot;,
+            &quot;state&quot;,
+            &quot;errorMessages&quot;
+          ],
+          &quot;type&quot; : &quot;object&quot;
+        },
+        &quot;type&quot; : &quot;array&quot;
+      },
+      &quot;schemeName&quot; : {
+        &quot;description&quot; : &quot;Active scheme name&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;summary&quot; : {
+        &quot;description&quot; : &quot;Test execution summary&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;totalResults&quot; : {
+        &quot;description&quot; : &quot;Total number of test results before truncation&quot;,
+        &quot;type&quot; : &quot;integer&quot;
+      },
+      &quot;truncated&quot; : {
+        &quot;description&quot; : &quot;Whether results were truncated due to exceeding 100 results&quot;,
+        &quot;type&quot; : &quot;boolean&quot;
+      }
+    },
+    &quot;required&quot; : [
+      &quot;summary&quot;,
+      &quot;counts&quot;,
+      &quot;results&quot;,
+      &quot;schemeName&quot;,
+      &quot;truncated&quot;,
+      &quot;totalResults&quot;,
+      &quot;fullSummaryPath&quot;
+    ],
+    &quot;type&quot; : &quot;object&quot;
+  }
+}</pre>
+</details>
+</div>
+</article>
+</details>
+<details class="category" data-category="Preview / Debugging" open>
+<summary><span class="category-name">プレビュー / デバッグ</span><span class="badge">2</span></summary>
+<article class="tool" id="tool-RenderPreview" data-search="renderpreview previewをビルド・レンダリングし、結果のuiのスナップショットが取得できるようになるまで待機します。">
+<h3 class="tool-heading">
+<a class="tool-name" href="#tool-RenderPreview">RenderPreview</a>
+<span class="tool-summary">Previewをビルド・レンダリングし、結果のUIのスナップショットが取得できるようになるまで待機します。</span>
+</h3>
+<div class="body">
+<div class="desc">Previewをビルド・レンダリングし、結果のUIのスナップショットが取得できるようになるまで待機します。</div>
+<h4>入力</h4>
+<table>
+<thead><tr><th>名前</th><th>型</th><th>必須</th><th>説明</th></tr></thead>
+<tbody>
+<tr>
+<td class="name" style="padding-left: 12px"><code>sourceFilePath</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">Xcodeプロジェクトの構成内にあるファイルへのパス(例: 'ProjectName/Sources/MyFile.swift')</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>tabIdentifier</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">ワークスペースタブの識別子</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>previewDefinitionIndexInFile</code></td>
+<td class="type"><code>integer</code></td>
+<td class="required"></td>
+<td class="desc-cell">ソースファイルの先頭から数えた、#Previewマクロまたは PreviewProvider 構造体定義のゼロ始まりのインデックス。デフォルトは0、つまり最初の1つです。</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>previewVariantOverrides</code></td>
+<td class="type"><code>object</code></td>
+<td class="required"></td>
+<td class="desc-cell">上書きすべきプレビューバリアントについて、バリアントグループ名をバリアント名に対応付ける辞書。同じアクティブなスキームと実行先に対するこのツールの前回の呼び出しで、`supportedPreviewVariantOverrides` フィールドとして返されたキーと値を使用してください。</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>timeout</code></td>
+<td class="type"><code>integer</code></td>
+<td class="required"></td>
+<td class="desc-cell">プレビューのレンダリングが完了するまで待機する秒数。デフォルトは120秒です。</td>
+</tr>
+</tbody>
+</table>
+<h4>出力</h4>
+<table>
+<thead><tr><th>名前</th><th>型</th><th>必須</th><th>説明</th></tr></thead>
+<tbody>
+<tr>
+<td class="name" style="padding-left: 12px"><code>errors</code></td>
+<td class="type"><code>array&lt;object&gt;</code></td>
+<td class="required"></td>
+<td class="desc-cell">プレビューの試行中に発生したエラー(入力の検証失敗など)。</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>message</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">根本的なエラーが含まれる場合はそれも含めた、エラーメッセージ。</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>previewSnapshotPath</code></td>
+<td class="type"><code>string</code></td>
+<td class="required"></td>
+<td class="desc-cell">リクエストされたプレビューの画像スナップショットへのパス。</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>supportedPreviewVariantOverrides</code></td>
+<td class="type"><code>object</code></td>
+<td class="required"></td>
+<td class="desc-cell">サポートされるプレビューバリアントの上書き設定。以降のツール呼び出しで `previewVariantOverrides` パラメータに渡せます。キーは上書き可能なバリアントグループの名前、値はそのグループでサポートされるバリアントの名前です。</td>
+</tr>
+</tbody>
+</table>
+<details class="raw">
+<summary>生のJSON</summary>
+<pre>{
+  &quot;description&quot; : &quot;Builds and renders a Preview and waits until a snapshot of the resulting UI is available.&quot;,
+  &quot;inputSchema&quot; : {
+    &quot;properties&quot; : {
+      &quot;previewDefinitionIndexInFile&quot; : {
+        &quot;description&quot; : &quot;The zero based index of the #Preview macro or PreviewProvider struct definition in the source file counting from the top. Defaults to 0, i.e. the first one.&quot;,
+        &quot;type&quot; : &quot;integer&quot;
+      },
+      &quot;previewVariantOverrides&quot; : {
+        &quot;description&quot; : &quot;A dictionary mapping variant group names to variant names for any preview variants that should be overridden. Use keys and values that were returned in the `supportedPreviewVariantOverrides` field by a previous invocation of this tool for the same active scheme and run destination.&quot;,
+        &quot;type&quot; : &quot;object&quot;
+      },
+      &quot;sourceFilePath&quot; : {
+        &quot;description&quot; : &quot;The path to the file within the Xcode project organization (e.g., 'ProjectName/Sources/MyFile.swift')&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;tabIdentifier&quot; : {
+        &quot;description&quot; : &quot;The workspace tab identifier&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;timeout&quot; : {
+        &quot;description&quot; : &quot;The time in seconds to wait for the rendering of the preview to complete. Defaults to 120 seconds.&quot;,
+        &quot;type&quot; : &quot;integer&quot;
+      }
+    },
+    &quot;required&quot; : [
+      &quot;tabIdentifier&quot;,
+      &quot;sourceFilePath&quot;
+    ],
+    &quot;type&quot; : &quot;object&quot;
+  },
+  &quot;name&quot; : &quot;RenderPreview&quot;,
+  &quot;outputSchema&quot; : {
+    &quot;properties&quot; : {
+      &quot;errors&quot; : {
+        &quot;description&quot; : &quot;Any errors that occurred during the preview attempt (such as input validation failures).&quot;,
+        &quot;items&quot; : {
+          &quot;properties&quot; : {
+            &quot;message&quot; : {
+              &quot;description&quot; : &quot;The error message with potential underlying errors included.&quot;,
+              &quot;type&quot; : &quot;string&quot;
+            }
+          },
+          &quot;required&quot; : [
+            &quot;message&quot;
+          ],
+          &quot;type&quot; : &quot;object&quot;
+        },
+        &quot;type&quot; : &quot;array&quot;
+      },
+      &quot;previewSnapshotPath&quot; : {
+        &quot;description&quot; : &quot;The path to the image snapshot of the requested preview.&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;supportedPreviewVariantOverrides&quot; : {
+        &quot;description&quot; : &quot;The supported preview variant overrides, which can be passed to the tool in the `previewVariantOverrides` parameter in subsequent tool invocations. The keys are the names of variant groups that can be overridden, and the values are the names of the variants that are supported for that group.&quot;,
+        &quot;type&quot; : &quot;object&quot;
+      }
+    },
+    &quot;required&quot; : [
+
+    ],
+    &quot;type&quot; : &quot;object&quot;
+  }
+}</pre>
+</details>
+</div>
+</article>
+<article class="tool" id="tool-RunCodeSnippet" data-search="runcodesnippet 特定のファイルのコンテキストでコードスニペットをビルド・実行し、結果が取得できるようになるまで待機します。このツールは、アプリケーション、フレームワーク、ライブラリ、またはコマンドライン実行可能ファイルをビルドするターゲット内のソースファイルで利用できます。出力は、指定したスニペットに含まれる `print` 文によって生成されたコンソール出力です。">
+<h3 class="tool-heading">
+<a class="tool-name" href="#tool-RunCodeSnippet">RunCodeSnippet</a>
+<span class="tool-summary">特定のファイルのコンテキストでコードスニペットをビルド・実行し、結果が取得できるようになるまで待機します。このツールは、アプリケーション、フレームワーク、ライブラリ、またはコマンドライン実行可能ファイルをビルドするターゲット内のソースファイルで利用できます。出力は、指定したスニペットに含まれる `print` 文によって生成されたコンソール出力です。</span>
+</h3>
+<div class="body">
+<div class="desc">特定のファイルのコンテキストでコードスニペットをビルド・実行し、結果が取得できるようになるまで待機します。このツールは、アプリケーション、フレームワーク、ライブラリ、またはコマンドライン実行可能ファイルをビルドするターゲット内のソースファイルで利用できます。出力は、指定したスニペットに含まれる `print` 文によって生成されたコンソール出力です。</div>
+<h4>入力</h4>
+<table>
+<thead><tr><th>名前</th><th>型</th><th>必須</th><th>説明</th></tr></thead>
+<tbody>
+<tr>
+<td class="name" style="padding-left: 12px"><code>codeSnippet</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">指定したSwiftファイルのコンテキスト内で実行するコードスニペット。</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>purpose</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">このコードスニペットを実行する目的についての、短く人間が読める形式の説明。この文字列には 'test' という単語を使用しないでください。誤解を招き、この機能がテストに関連していると思わせてしまう可能性があるためです。</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>sourceFilePath</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">コードスニペットがそのコンテキスト(`fileprivate` 宣言を含む)にアクセスできる、Xcodeプロジェクトの構成内にあるSwiftソースファイルへのパス(例: 'ProjectName/Sources/MyFile.swift')。</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>tabIdentifier</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">ワークスペースタブの識別子。</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>timeout</code></td>
+<td class="type"><code>integer</code></td>
+<td class="required"></td>
+<td class="desc-cell">スニペットの実行が完了するまで待機する秒数。デフォルトは600秒です。</td>
+</tr>
+</tbody>
+</table>
+<h4>出力</h4>
+<table>
+<thead><tr><th>名前</th><th>型</th><th>必須</th><th>説明</th></tr></thead>
+<tbody>
+<tr>
+<td class="name" style="padding-left: 12px"><code>error</code></td>
+<td class="type"><code>object</code></td>
+<td class="required"></td>
+<td class="desc-cell">スニペットの実行中に発生したエラー(該当する場合)。スニペットのコンパイルに関する問題か、実行時エラーのいずれかです。</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>message</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">エラーを説明する非常に短いメッセージ。</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>summary</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">エラーとその原因(判明していれば)についての、より詳しい説明。</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>detailsPath</code></td>
+<td class="type"><code>string</code></td>
+<td class="required"></td>
+<td class="desc-cell">エラーの詳細をすべて含む、任意のファイルへのパス。</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>recoveryAdvice</code></td>
+<td class="type"><code>string</code></td>
+<td class="required"></td>
+<td class="desc-cell">エラーの解決方法についての助言を示す、任意のメッセージ。</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>executionResults</code></td>
+<td class="type"><code>string</code></td>
+<td class="required"></td>
+<td class="desc-cell">指定したスニペットに含まれる `print` 文によって生成されたコンソール出力。</td>
+</tr>
+</tbody>
+</table>
+<details class="raw">
+<summary>生のJSON</summary>
+<pre>{
+  &quot;description&quot; : &quot;Builds and runs a snippet of code in the context of a specific file and waits until results are available. This tool is available for source files in targets that build applications, frameworks, libraries, or command line executables. The output consists of the console output generated by the `print` statements contained in the provided snippet.&quot;,
+  &quot;inputSchema&quot; : {
+    &quot;properties&quot; : {
+      &quot;codeSnippet&quot; : {
+        &quot;description&quot; : &quot;The code snippet that should be run within the context of the specified Swift file.&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;purpose&quot; : {
+        &quot;description&quot; : &quot;A short human-readable description of the purpose of running this code snippet. Do NOT use the word 'test' in this string, because that is misleading and could make the user think that this functionality is related to testing.&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;sourceFilePath&quot; : {
+        &quot;description&quot; : &quot;The path to a Swift source file within the Xcode project organization (e.g., 'ProjectName/Sources/MyFile.swift') whose context the code snippet will have access to (including `fileprivate` declarations).&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;tabIdentifier&quot; : {
+        &quot;description&quot; : &quot;The workspace tab identifier.&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;timeout&quot; : {
+        &quot;description&quot; : &quot;The time in seconds to wait for the running of the snippet to complete. Defaults to 600 seconds.&quot;,
+        &quot;type&quot; : &quot;integer&quot;
+      }
+    },
+    &quot;required&quot; : [
+      &quot;tabIdentifier&quot;,
+      &quot;codeSnippet&quot;,
+      &quot;sourceFilePath&quot;,
+      &quot;purpose&quot;
+    ],
+    &quot;type&quot; : &quot;object&quot;
+  },
+  &quot;name&quot; : &quot;RunCodeSnippet&quot;,
+  &quot;outputSchema&quot; : {
+    &quot;properties&quot; : {
+      &quot;error&quot; : {
+        &quot;description&quot; : &quot;Any error that occurred while trying to run the snippet, if applicable. This could be a problem compiling the snippet or it could be a runtime error.&quot;,
+        &quot;properties&quot; : {
+          &quot;detailsPath&quot; : {
+            &quot;description&quot; : &quot;The path of an optional file that contains all the details of the error.&quot;,
+            &quot;type&quot; : &quot;string&quot;
+          },
+          &quot;message&quot; : {
+            &quot;description&quot; : &quot;A very short message describing the error.&quot;,
+            &quot;type&quot; : &quot;string&quot;
+          },
+          &quot;recoveryAdvice&quot; : {
+            &quot;description&quot; : &quot;An optional message providing advice on how to resolve the error.&quot;,
+            &quot;type&quot; : &quot;string&quot;
+          },
+          &quot;summary&quot; : {
+            &quot;description&quot; : &quot;A longer summary of the error and (if known) its cause.&quot;,
+            &quot;type&quot; : &quot;string&quot;
+          }
+        },
+        &quot;required&quot; : [
+          &quot;message&quot;,
+          &quot;summary&quot;
+        ],
+        &quot;type&quot; : &quot;object&quot;
+      },
+      &quot;executionResults&quot; : {
+        &quot;description&quot; : &quot;The console output generated by the `print` statements contained in the provided snippet.&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      }
+    },
+    &quot;required&quot; : [
+
+    ],
+    &quot;type&quot; : &quot;object&quot;
+  }
+}</pre>
+</details>
+</div>
+</article>
+</details>
+<details class="category" data-category="Other" open>
+<summary><span class="category-name">その他</span><span class="badge">3</span></summary>
+<article class="tool" id="tool-XcodeGetCurrentFile" data-search="xcodegetcurrentfile xcodeエディタで現在アクティブなファイルの情報(ファイルパス、内容、選択範囲を含む)を取得します。内容は行番号付きのcat -n形式で返されます。デフォルトで最大600行まで読み取りに対応し、大きなファイルの場合はoffsetとlimitパラメータで調整できます。">
+<h3 class="tool-heading">
+<a class="tool-name" href="#tool-XcodeGetCurrentFile">XcodeGetCurrentFile</a>
+<span class="tool-summary">Xcodeエディタで現在アクティブなファイルの情報(ファイルパス、内容、選択範囲を含む)を取得します。内容は行番号付きのcat -n形式で返されます。デフォルトで最大600行まで読み取りに対応し、大きなファイルの場合はoffsetとlimitパラメータで調整できます。</span>
+</h3>
+<div class="body">
+<div class="desc">Xcodeエディタで現在アクティブなファイルの情報(ファイルパス、内容、選択範囲を含む)を取得します。内容は行番号付きのcat -n形式で返されます。デフォルトで最大600行まで読み取りに対応し、大きなファイルの場合はoffsetとlimitパラメータで調整できます。</div>
+<h4>入力</h4>
+<table>
+<thead><tr><th>名前</th><th>型</th><th>必須</th><th>説明</th></tr></thead>
+<tbody>
+<tr>
+<td class="name" style="padding-left: 12px"><code>tabIdentifier</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">ワークスペースタブの識別子</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>includeContent</code></td>
+<td class="type"><code>boolean</code></td>
+<td class="required"></td>
+<td class="desc-cell">レスポンスにファイルの内容を含めるかどうか</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>includeSelection</code></td>
+<td class="type"><code>boolean</code></td>
+<td class="required"></td>
+<td class="desc-cell">現在の選択範囲の情報を含めるかどうか</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>limit</code></td>
+<td class="type"><code>integer</code></td>
+<td class="required"></td>
+<td class="desc-cell">読み取る行数(ファイルが大きすぎて一度に読み取れない場合にのみ指定)</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>offset</code></td>
+<td class="type"><code>integer</code></td>
+<td class="required"></td>
+<td class="desc-cell">読み取りを開始する行番号(ファイルが大きすぎて一度に読み取れない場合にのみ指定)</td>
+</tr>
+</tbody>
+</table>
+<h4>出力</h4>
+<table>
+<thead><tr><th>名前</th><th>型</th><th>必須</th><th>説明</th></tr></thead>
+<tbody>
+<tr>
+<td class="name" style="padding-left: 12px"><code>isEditable</code></td>
+<td class="type"><code>boolean</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">ファイルが編集可能かどうか</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>content</code></td>
+<td class="type"><code>string</code></td>
+<td class="required"></td>
+<td class="desc-cell">行番号付き(cat -n形式)でフォーマットされた現在のファイルの内容</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>filePath</code></td>
+<td class="type"><code>string</code></td>
+<td class="required"></td>
+<td class="desc-cell">現在のファイルへのフルパス</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>linesRead</code></td>
+<td class="type"><code>integer</code></td>
+<td class="required"></td>
+<td class="desc-cell">実際に読み取られた行数</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>selection</code></td>
+<td class="type"><code>object</code></td>
+<td class="required"></td>
+<td class="desc-cell">現在の選択範囲の情報</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>characterRange</code></td>
+<td class="type"><code>object</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">選択範囲の文字レンジ</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>lineRange</code></td>
+<td class="type"><code>object</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">選択範囲の行レンジ</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>text</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">選択されたテキストの内容</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>startLine</code></td>
+<td class="type"><code>integer</code></td>
+<td class="required"></td>
+<td class="desc-cell">読み取りを開始した行番号</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>totalLines</code></td>
+<td class="type"><code>integer</code></td>
+<td class="required"></td>
+<td class="desc-cell">ファイル内の総行数</td>
+</tr>
+</tbody>
+</table>
+<details class="raw">
+<summary>生のJSON</summary>
+<pre>{
+  &quot;description&quot; : &quot;Gets information about the currently active file in the Xcode editor including file path, content, and selection. Returns content in cat -n format with line numbers. Supports reading up to 600 lines by default with optional offset and limit parameters for large files.&quot;,
+  &quot;inputSchema&quot; : {
+    &quot;properties&quot; : {
+      &quot;includeContent&quot; : {
+        &quot;description&quot; : &quot;Whether to include file content in the response&quot;,
+        &quot;type&quot; : &quot;boolean&quot;
+      },
+      &quot;includeSelection&quot; : {
+        &quot;description&quot; : &quot;Whether to include current selection information&quot;,
+        &quot;type&quot; : &quot;boolean&quot;
+      },
+      &quot;limit&quot; : {
+        &quot;description&quot; : &quot;The number of lines to read (only provide if the file is too large to read at once)&quot;,
+        &quot;type&quot; : &quot;integer&quot;
+      },
+      &quot;offset&quot; : {
+        &quot;description&quot; : &quot;The line number to start reading from (only provide if the file is too large to read at once)&quot;,
+        &quot;type&quot; : &quot;integer&quot;
+      },
+      &quot;tabIdentifier&quot; : {
+        &quot;description&quot; : &quot;Identifier for the workspace tab&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      }
+    },
+    &quot;required&quot; : [
+      &quot;tabIdentifier&quot;
+    ],
+    &quot;type&quot; : &quot;object&quot;
+  },
+  &quot;name&quot; : &quot;XcodeGetCurrentFile&quot;,
+  &quot;outputSchema&quot; : {
+    &quot;properties&quot; : {
+      &quot;content&quot; : {
+        &quot;description&quot; : &quot;Content of the current file formatted with line numbers (cat -n style)&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;filePath&quot; : {
+        &quot;description&quot; : &quot;Full path to the current file&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;isEditable&quot; : {
+        &quot;description&quot; : &quot;Whether the file is editable&quot;,
+        &quot;type&quot; : &quot;boolean&quot;
+      },
+      &quot;linesRead&quot; : {
+        &quot;description&quot; : &quot;Number of lines actually read&quot;,
+        &quot;type&quot; : &quot;integer&quot;
+      },
+      &quot;selection&quot; : {
+        &quot;description&quot; : &quot;Current selection information&quot;,
+        &quot;properties&quot; : {
+          &quot;characterRange&quot; : {
+            &quot;description&quot; : &quot;Character range of the selection&quot;,
+            &quot;type&quot; : &quot;object&quot;
+          },
+          &quot;lineRange&quot; : {
+            &quot;description&quot; : &quot;Line range of the selection&quot;,
+            &quot;type&quot; : &quot;object&quot;
+          },
+          &quot;text&quot; : {
+            &quot;description&quot; : &quot;Selected text content&quot;,
+            &quot;type&quot; : &quot;string&quot;
+          }
+        },
+        &quot;required&quot; : [
+          &quot;text&quot;,
+          &quot;lineRange&quot;,
+          &quot;characterRange&quot;
+        ],
+        &quot;type&quot; : &quot;object&quot;
+      },
+      &quot;startLine&quot; : {
+        &quot;description&quot; : &quot;The line number where reading started&quot;,
+        &quot;type&quot; : &quot;integer&quot;
+      },
+      &quot;totalLines&quot; : {
+        &quot;description&quot; : &quot;Total number of lines in the file&quot;,
+        &quot;type&quot; : &quot;integer&quot;
+      }
+    },
+    &quot;required&quot; : [
+      &quot;isEditable&quot;
+    ],
+    &quot;type&quot; : &quot;object&quot;
+  }
+}</pre>
+</details>
+</div>
+</article>
+<article class="tool" id="tool-XcodeListNavigatorIssues" data-search="xcodelistnavigatorissues ワークスペース内のxcodeのissue navigator uiに表示されている、現在把握されている問題の一覧を取得します。これには直前のビルド以降に検出された問題に加えて、パッケージ解決の問題やワークスペース設定の問題も含まれます。ファイル名、glob、重大度で問題を絞り込むことができます。ワークスペースuiでユーザーが確認できる項目をすべて一覧表示したい場合に、このツールを使用してください。">
+<h3 class="tool-heading">
+<a class="tool-name" href="#tool-XcodeListNavigatorIssues">XcodeListNavigatorIssues</a>
+<span class="tool-summary">ワークスペース内のXcodeのIssue Navigator UIに表示されている、現在把握されている問題の一覧を取得します。これには直前のビルド以降に検出された問題に加えて、パッケージ解決の問題やワークスペース設定の問題も含まれます。ファイル名、glob、重大度で問題を絞り込むことができます。ワークスペースUIでユーザーが確認できる項目をすべて一覧表示したい場合に、このツールを使用してください。</span>
+</h3>
+<div class="body">
+<div class="desc">ワークスペース内のXcodeのIssue Navigator UIに表示されている、現在把握されている問題の一覧を取得します。これには直前のビルド以降に検出された問題に加えて、パッケージ解決の問題やワークスペース設定の問題も含まれます。ファイル名、glob、重大度で問題を絞り込むことができます。ワークスペースUIでユーザーが確認できる項目をすべて一覧表示したい場合に、このツールを使用してください。</div>
+<h4>入力</h4>
+<table>
+<thead><tr><th>名前</th><th>型</th><th>必須</th><th>説明</th></tr></thead>
+<tbody>
+<tr>
+<td class="name" style="padding-left: 12px"><code>tabIdentifier</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">ワークスペースタブの識別子</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>glob</code></td>
+<td class="type"><code>string</code></td>
+<td class="required"></td>
+<td class="desc-cell">返される問題を絞り込むためのglob。'path'フィールドに対してマッチします。</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>pattern</code></td>
+<td class="type"><code>string</code></td>
+<td class="required"></td>
+<td class="desc-cell">返される問題を絞り込むための正規表現。'message'フィールドに対してマッチします。</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>severity</code></td>
+<td class="type"><code>string</code></td>
+<td class="required"></td>
+<td class="desc-cell">指定した重大度以上の問題のみに絞り込みます。重大度が高い順に有効な値は'error'、'warning'、'remark'です。デフォルトは'error'です。</td>
+</tr>
+</tbody>
+</table>
+<h4>出力</h4>
+<table>
+<thead><tr><th>名前</th><th>型</th><th>必須</th><th>説明</th></tr></thead>
+<tbody>
+<tr>
+<td class="name" style="padding-left: 12px"><code>issues</code></td>
+<td class="type"><code>array&lt;object&gt;</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">入力フィルタに一致する現在の問題の一覧</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>message</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">問題を説明するメッセージ</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>severity</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">問題の重大度(error、warning、remark)</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>category</code></td>
+<td class="type"><code>string</code></td>
+<td class="required"></td>
+<td class="desc-cell">分かっている場合の、問題のカテゴリ</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>line</code></td>
+<td class="type"><code>integer</code></td>
+<td class="required"></td>
+<td class="desc-cell">問題が検出された行番号(判明している場合)</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>path</code></td>
+<td class="type"><code>string</code></td>
+<td class="required"></td>
+<td class="desc-cell">問題が検出されたファイルパス(存在する場合)</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 30px"><code>vitality</code></td>
+<td class="type"><code>string</code></td>
+<td class="required"></td>
+<td class="desc-cell">以前のビルドで検出された問題が今も有効であることが分かっているか、発生後に何らかの変化があった可能性があるか(例えば、ソースファイルが編集され、その編集で問題が解決したかどうかがまだ分かっていない場合)を示します。可能な値: (fresh, stale)<div class="enum">fresh / stale</div></td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>totalFound</code></td>
+<td class="type"><code>integer</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">切り捨て前の問題の総数</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>truncated</code></td>
+<td class="type"><code>boolean</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">100件の問題を超えたために結果が切り詰められたかどうか</td>
+</tr>
+<tr>
+<td class="name" style="padding-left: 12px"><code>message</code></td>
+<td class="type"><code>string</code></td>
+<td class="required"></td>
+<td class="desc-cell">検索結果についての追加情報を含む、任意のメッセージ</td>
+</tr>
+</tbody>
+</table>
+<details class="raw">
+<summary>生のJSON</summary>
+<pre>{
+  &quot;description&quot; : &quot;Lists the currently known issues shown Xcode's Issue Navigator UI in the workspace. These issues include those that have been discovered since the last build, and also issues like package resolution problems and workspace configuration issues. You can filter the issues to include by file name, glob, or severity. Use this tool when you want to list all the users the user can see in the workspace UI.&quot;,
+  &quot;inputSchema&quot; : {
+    &quot;properties&quot; : {
+      &quot;glob&quot; : {
+        &quot;description&quot; : &quot;Glob to filter the returned issues. Will match against the 'path' field.&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;pattern&quot; : {
+        &quot;description&quot; : &quot;Regex to filter the returned issues. Will match against the 'message' field.&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;severity&quot; : {
+        &quot;description&quot; : &quot;Limit the returned issues to those that have the specified severity or higher. Valid values in order of decreasing severity are 'error', 'warning', 'remark'. Defaults to 'error'.&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;tabIdentifier&quot; : {
+        &quot;description&quot; : &quot;The workspace tab identifier&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      }
+    },
+    &quot;required&quot; : [
+      &quot;tabIdentifier&quot;
+    ],
+    &quot;type&quot; : &quot;object&quot;
+  },
+  &quot;name&quot; : &quot;XcodeListNavigatorIssues&quot;,
+  &quot;outputSchema&quot; : {
+    &quot;properties&quot; : {
+      &quot;issues&quot; : {
+        &quot;description&quot; : &quot;The list of current issues matching the input filters&quot;,
+        &quot;items&quot; : {
+          &quot;properties&quot; : {
+            &quot;category&quot; : {
+              &quot;description&quot; : &quot;The category of the issue, if known&quot;,
+              &quot;type&quot; : &quot;string&quot;
+            },
+            &quot;line&quot; : {
+              &quot;description&quot; : &quot;The line number where the issue was detected, if known&quot;,
+              &quot;type&quot; : &quot;integer&quot;
+            },
+            &quot;message&quot; : {
+              &quot;description&quot; : &quot;The message describing the issue&quot;,
+              &quot;type&quot; : &quot;string&quot;
+            },
+            &quot;path&quot; : {
+              &quot;description&quot; : &quot;The file path where the issue was detected, if any&quot;,
+              &quot;type&quot; : &quot;string&quot;
+            },
+            &quot;severity&quot; : {
+              &quot;description&quot; : &quot;The severity of issue (error, warning, remark)&quot;,
+              &quot;type&quot; : &quot;string&quot;
+            },
+            &quot;vitality&quot; : {
+              &quot;description&quot; : &quot;Whether an issue from a previous build is known to still be relevant or whether something might have changed since it was emitted (for example if the source file has been edited and it isn't yet known whether that edit fixes the issue). Possible values: (fresh, stale)&quot;,
+              &quot;enum&quot; : [
+                &quot;fresh&quot;,
+                &quot;stale&quot;
+              ],
+              &quot;type&quot; : &quot;string&quot;
+            }
+          },
+          &quot;required&quot; : [
+            &quot;message&quot;,
+            &quot;severity&quot;
+          ],
+          &quot;type&quot; : &quot;object&quot;
+        },
+        &quot;type&quot; : &quot;array&quot;
+      },
+      &quot;message&quot; : {
+        &quot;description&quot; : &quot;Optional message with additional information about the search results&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      },
+      &quot;totalFound&quot; : {
+        &quot;description&quot; : &quot;Total number of issues before truncation&quot;,
+        &quot;type&quot; : &quot;integer&quot;
+      },
+      &quot;truncated&quot; : {
+        &quot;description&quot; : &quot;Whether results were truncated due to exceeding 100 issues&quot;,
+        &quot;type&quot; : &quot;boolean&quot;
+      }
+    },
+    &quot;required&quot; : [
+      &quot;issues&quot;,
+      &quot;truncated&quot;,
+      &quot;totalFound&quot;
+    ],
+    &quot;type&quot; : &quot;object&quot;
+  }
+}</pre>
+</details>
+</div>
+</article>
+<article class="tool" id="tool-XcodeListWindows" data-search="xcodelistwindows 現在のxcodeウィンドウとそのワークスペース情報を一覧表示します">
+<h3 class="tool-heading">
+<a class="tool-name" href="#tool-XcodeListWindows">XcodeListWindows</a>
+<span class="tool-summary">現在のXcodeウィンドウとそのワークスペース情報を一覧表示します</span>
+</h3>
+<div class="body">
+<div class="desc">現在のXcodeウィンドウとそのワークスペース情報を一覧表示します</div>
+<h4>入力</h4>
+<p class="empty">パラメータなし</p>
+<h4>出力</h4>
+<table>
+<thead><tr><th>名前</th><th>型</th><th>必須</th><th>説明</th></tr></thead>
+<tbody>
+<tr>
+<td class="name" style="padding-left: 12px"><code>message</code></td>
+<td class="type"><code>string</code></td>
+<td class="required">必須</td>
+<td class="desc-cell">開いているすべてのXcodeウィンドウの説明</td>
+</tr>
+</tbody>
+</table>
+<details class="raw">
+<summary>生のJSON</summary>
+<pre>{
+  &quot;description&quot; : &quot;Lists the current Xcode windows and their workspace information&quot;,
+  &quot;inputSchema&quot; : {
+    &quot;properties&quot; : {
+
+    },
+    &quot;required&quot; : [
+
+    ],
+    &quot;type&quot; : &quot;object&quot;
+  },
+  &quot;name&quot; : &quot;XcodeListWindows&quot;,
+  &quot;outputSchema&quot; : {
+    &quot;properties&quot; : {
+      &quot;message&quot; : {
+        &quot;description&quot; : &quot;Description of all open Xcode windows&quot;,
+        &quot;type&quot; : &quot;string&quot;
+      }
+    },
+    &quot;required&quot; : [
+      &quot;message&quot;
+    ],
+    &quot;type&quot; : &quot;object&quot;
+  }
+}</pre>
+</details>
+</div>
+</article>
+</details>
+<p id="empty" hidden>一致するツールがありません。</p>
+</main>
+<script>
+const search = document.getElementById('search');
+const chips = Array.from(document.querySelectorAll('.chip'));
+const sections = Array.from(document.querySelectorAll('.category'));
+const count = document.getElementById('count');
+const empty = document.getElementById('empty');
+let category = '';
+
+// Remember how the reader left each category, and restore that once searching is over.
+for (const section of sections) {
+  section.dataset.userOpen = 'true';
+  section.querySelector('summary').addEventListener('click', () => {
+    section.dataset.userOpen = section.open ? 'false' : 'true';
+  });
+}
+
+function apply() {
+  const query = search.value.trim().toLowerCase();
+  let visible = 0;
+  for (const section of sections) {
+    const inCategory = !category || section.dataset.category === category;
+    let shown = 0;
+    for (const tool of section.querySelectorAll('.tool')) {
+      const match = inCategory && (!query || tool.dataset.search.includes(query));
+      tool.hidden = !match;
+      if (match) { shown++; }
+    }
+    section.hidden = shown === 0;
+    // Open matching categories while searching; restore the previous state once cleared.
+    section.open = query ? shown > 0 : section.dataset.userOpen !== 'false';
+    visible += shown;
+  }
+  count.textContent = visible;
+  empty.hidden = visible !== 0;
+}
+
+search.addEventListener('input', apply);
+for (const chip of chips) {
+  chip.addEventListener('click', () => {
+    chips.forEach((other) => other.classList.toggle('selected', other === chip));
+    category = chip.dataset.category;
+    apply();
+  });
+}
+// When opened with an anchor, open the category holding that tool and scroll to it.
+if (location.hash) {
+  const target = document.getElementById(location.hash.slice(1));
+  if (target) {
+    const section = target.closest('.category');
+    if (section) {
+      section.open = true;
+      section.dataset.userOpen = 'true';
+    }
+    target.scrollIntoView();
+  }
+}
+</script>
+</body>
+</html>

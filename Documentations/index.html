@@ -37,7 +37,7 @@ header {
 .title-group { display: flex; flex-direction: column; gap: 2px; }
 h1 { margin: 0; font-size: 15px; font-weight: 600; }
 .subtitle { margin: 0; font-size: 12px; color: var(--muted); }
-#version {
+#version, #lang {
   font-size: 14px;
   padding: 5px 8px;
   color: var(--text);
@@ -60,14 +60,19 @@ iframe {
 <p class="subtitle">docs for the tools xcode's built-in mcp server exposes, by version</p>
 </div>
 <select id="version" aria-label="Xcode version">
-<option value="xcode-27.2-beta-mcp-tools.html" selected>Xcode 27.2 (Beta)</option>
-<option value="xcode-27.0-mcp-tools.html">Xcode 27.0</option>
+<option value="xcode-27.2-beta-mcp-tools.html" selected data-ja="1">Xcode 27.2 (Beta)</option>
+<option value="xcode-27.0-mcp-tools.html" data-ja="1">Xcode 27.0</option>
 <option value="xcode-26.6-mcp-tools.html">Xcode 26.6</option>
+</select>
+<select id="lang" aria-label="Language">
+<option value="en" selected>English</option>
+<option value="ja">日本語</option>
 </select>
 </header>
 <iframe id="doc" src="xcode-27.2-beta-mcp-tools.html" title="Xcode MCP Docs"></iframe>
 <script>
 const select = document.getElementById('version');
+const lang = document.getElementById('lang');
 const frame = document.getElementById('doc');
 
 function toolAnchor() {
@@ -76,12 +81,22 @@ function toolAnchor() {
   return hash.startsWith('tool-') ? hash : `tool-${hash}`;
 }
 
+// Falls back to English when the selected version has no Japanese translation
+// (the option's data-ja attribute, set by the renderer, says which ones do).
+function currentFile() {
+  const option = select.options[select.selectedIndex];
+  const hasJapanese = option && option.dataset.ja === '1';
+  return lang && lang.value === 'ja' && hasJapanese ? `ja/${select.value}` : select.value;
+}
+
 function loadFrame() {
   const anchor = toolAnchor();
-  frame.src = anchor ? `${select.value}#${anchor}` : select.value;
+  const file = currentFile();
+  frame.src = anchor ? `${file}#${anchor}` : file;
 }
 
 select.addEventListener('change', loadFrame);
+if (lang) lang.addEventListener('change', loadFrame);
 window.addEventListener('hashchange', loadFrame);
 loadFrame();
 </script>
